@@ -23,7 +23,9 @@ export default defineConfig({
         test: {
           environment: "node",
           exclude: ["src/**/*.d1.test.ts"],
-          include: ["src/**/*.test.ts"],
+          // A component test opts into jsdom with a docblock of its own, so the
+          // cheap default stays node.
+          include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
           name: "unit",
         },
       },

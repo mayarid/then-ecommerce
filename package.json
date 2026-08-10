@@ -45,6 +45,7 @@
     "@biomejs/biome": "2.5.6",
     "@cloudflare/vite-plugin": "^1.51.0",
     "@cloudflare/vitest-pool-workers": "^0.20.2",
+    "@paulmillr/qr": "^0.3.0",
     "@tanstack/devtools-vite": "latest",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",

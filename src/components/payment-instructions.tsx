@@ -5,8 +5,16 @@ import { encode } from "uqr";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { PaymentInstruction } from "@/lib/payment-instructions";
 
+// The QR standard asks for four clear modules around the code. Leaving it to
+// the surrounding white padding works out at roughly two, which decodes here
+// but gives a phone camera less to work with than the specification intends.
+const QR_QUIET_ZONE = 4;
+
 function QrCode({ label, value }: { label: string; value: string }) {
-  const matrix = useMemo(() => encode(value, { border: 1 }), [value]);
+  const matrix = useMemo(
+    () => encode(value, { border: QR_QUIET_ZONE }),
+    [value]
+  );
   const cells: Array<{ x: number; y: number }> = [];
 
   for (const [y, row] of matrix.data.entries()) {
