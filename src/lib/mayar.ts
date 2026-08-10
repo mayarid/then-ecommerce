@@ -1,13 +1,39 @@
 import { z } from "zod";
 
 import type { JsonObject } from "@/db/schema";
+import type { PaymentMethod } from "@/lib/payment-channels";
 import { getRuntimeEnv, requireEnv } from "@/lib/runtime-env";
 
 const invoiceResponseSchema = z.object({
   expiredAt: z.union([z.number(), z.string()]),
   id: z.string(),
   link: z.url(),
+  // Undocumented, and present on a channel-locked invoice. It is read only to
+  // find a failure Mayar reports inside a 200 response. Nothing else depends on
+  // it, so Mayar dropping the field costs nothing. See ADR-0016.
+  paymentDetail: z
+    .object({
+      errorMessage: z.string().nullish(),
+      // A prepared channel reports a word such as `PENDING` or `ACTIVE`. A
+      // channel that could not be prepared reports an HTTP status number.
+      status: z.union([z.number(), z.string()]).nullish(),
+    })
+    .loose()
+    .nullish(),
   transactionId: z.string(),
+});
+
+// Only the fields this application reads. Mayar sends more, and the rest is
+// merchant configuration that the checkout has no use for.
+const paymentChannelsResponseSchema = z.object({
+  config: z.array(
+    z.object({
+      code: z.string().nullish(),
+      name: z.string(),
+      status: z.boolean(),
+      type: z.string(),
+    })
+  ),
 });
 
 const transactionResponseSchema = z.object({
@@ -18,6 +44,8 @@ const transactionResponseSchema = z.object({
 });
 
 type InvoiceInput = {
+  /** Required by `POST /invoices/create` when `paymentMethod` is Jenius. */
+  cashtag?: string;
   description: string;
   email: string;
   expiredAt: string;
@@ -29,6 +57,12 @@ type InvoiceInput = {
   }>;
   mobile: string;
   name: string;
+  /**
+   * Restricts the invoice to one channel, so the hosted page offers only what
+   * the buyer already chose. Documented on `POST /invoices/create`. A channel
+   * the merchant has disabled returns 400.
+   */
+  paymentMethod?: PaymentMethod;
   /**
    * Post-payment browser return URL. Official V1 docs document this field.
    * Sandbox-verified on V2 create: accepted and persisted on the invoice.
@@ -97,6 +131,29 @@ async function requestMayar<T>(
   return parse ? parse(body.data) : (body.data as T);
 }
 
+/**
+ * Rejects an invoice Mayar reports as failed inside a successful response.
+ *
+ * A channel-locked invoice can come back `200 success` while `paymentDetail`
+ * carries its own status and error, for instance when Jenius is asked for
+ * without a cashtag. Treating that as a success would hand the buyer a link
+ * that cannot take money, with their stock already reserved behind it.
+ * Sandbox-verified. See ADR-0016.
+ */
+function assertInvoiceUsable(
+  invoice: z.infer<typeof invoiceResponseSchema>
+): z.infer<typeof invoiceResponseSchema> {
+  const detail = invoice.paymentDetail;
+
+  if (detail && typeof detail.status === "number" && detail.status >= 400) {
+    throw new Error(
+      detail.errorMessage ?? "Mayar could not prepare that payment method"
+    );
+  }
+
+  return invoice;
+}
+
 export function createMayarInvoice(input: InvoiceInput) {
   return requestMayar(
     "/invoices/create",
@@ -104,7 +161,14 @@ export function createMayarInvoice(input: InvoiceInput) {
       body: JSON.stringify(input),
       method: "POST",
     },
-    (value) => invoiceResponseSchema.parse(value)
+    (value) => assertInvoiceUsable(invoiceResponseSchema.parse(value))
+  );
+}
+
+/** The merchant's channel configuration. See `GET /payment-channels`. */
+export function getMayarPaymentChannels() {
+  return requestMayar("/payment-channels", undefined, (value) =>
+    paymentChannelsResponseSchema.parse(value)
   );
 }
 

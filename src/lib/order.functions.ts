@@ -26,6 +26,8 @@ import {
   getMayarTransaction,
 } from "@/lib/mayar";
 import { processMayarWebhook } from "@/lib/payment.functions";
+import { isPaymentMethod } from "@/lib/payment-channels";
+import { assertPaymentMethodEnabled } from "@/lib/payment-channels.functions";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { getRuntimeEnv, getShippingFlatRate } from "@/lib/runtime-env";
 import type { CheckoutInput } from "@/lib/validation";
@@ -79,6 +81,11 @@ function checkoutFingerprint(data: CheckoutInput) {
       data.province.trim(),
       data.postalCode.trim(),
       lines,
+      // The channel is part of what the attempt is, because the invoice is
+      // locked to it. Replaying a key with a different channel therefore asks
+      // for a different checkout and is refused. See ADR-0003 and ADR-0016.
+      data.paymentMethod,
+      data.cashtag?.trim() ?? "",
     ].join("|")
   );
 }
@@ -184,6 +191,25 @@ async function replayCheckout(
   };
 }
 
+/**
+ * The channel the latest attempt was locked to, for labelling the payment step.
+ *
+ * It is read from the attempt rather than the order, because an order can hold
+ * more than one attempt and only the newest one describes the link the buyer is
+ * about to open.
+ */
+async function readOrderPaymentMethod(orderId: string) {
+  const [attempt] = await getDb()
+    .select({ metadata: paymentAttempts.metadata })
+    .from(paymentAttempts)
+    .where(eq(paymentAttempts.orderId, orderId))
+    .orderBy(desc(paymentAttempts.createdAt))
+    .limit(1);
+  const method = attempt?.metadata?.paymentMethod;
+
+  return isPaymentMethod(method) ? method : null;
+}
+
 async function describeStockShortfall(
   lines: CheckoutInput["lines"]
 ): Promise<string> {
@@ -255,6 +281,10 @@ export async function createOrderForCheckout(
   if (replayed) {
     return replayed;
   }
+
+  // Before any row is written, so a channel the merchant does not offer never
+  // reserves stock that then has to be released.
+  await assertPaymentMethodEnabled(data.paymentMethod);
 
   const session = await getSession();
   const accessToken = createAccessToken();
@@ -402,6 +432,7 @@ export async function createOrderForCheckout(
 
   try {
     const invoice = await createMayarInvoice({
+      ...(data.cashtag ? { cashtag: data.cashtag } : {}),
       description: `Order ${orderNumber}`,
       email: data.email,
       expiredAt: reservationExpiresAt.toISOString(),
@@ -427,6 +458,7 @@ export async function createOrderForCheckout(
       ],
       mobile: data.phone,
       name: data.guestName,
+      paymentMethod: data.paymentMethod,
       redirectUrl: statusUrl,
     });
 
@@ -439,6 +471,7 @@ export async function createOrderForCheckout(
         invoiceId: invoice.id,
         metadata: {
           environment: getRuntimeEnv().MAYAR_ENVIRONMENT ?? "sandbox",
+          paymentMethod: data.paymentMethod,
         },
         orderId,
         paymentUrl: invoice.link,
@@ -499,13 +532,16 @@ export const getOrderByAccessToken = createServerFn({ method: "GET" })
       throw new Error("Order not found or access link expired");
     }
 
-    const items = await db
-      .select()
-      .from(orderItems)
-      .where(eq(orderItems.orderId, order.id))
-      .orderBy(asc(orderItems.createdAt));
+    const [items, paymentMethod] = await Promise.all([
+      db
+        .select()
+        .from(orderItems)
+        .where(eq(orderItems.orderId, order.id))
+        .orderBy(asc(orderItems.createdAt)),
+      readOrderPaymentMethod(order.id),
+    ]);
 
-    return { items, order };
+    return { items, order, paymentMethod };
   });
 
 export const getMyOrders = createServerFn({ method: "GET" }).handler(

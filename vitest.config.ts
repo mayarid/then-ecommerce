@@ -39,6 +39,11 @@ export default defineConfig({
                   resolve(import.meta.dirname, "drizzle")
                 ),
               },
+              // Kept in step with wrangler.jsonc. Without it the pool asks the
+              // runtime for today's date, and any workerd older than that
+              // refuses to start.
+              compatibilityDate: "2026-08-05",
+              compatibilityFlags: ["nodejs_compat"],
               d1Databases: ["DB"],
             },
           })),

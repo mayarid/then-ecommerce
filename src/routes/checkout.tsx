@@ -3,18 +3,34 @@ import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
+import { PaymentChannelPicker } from "@/components/payment-channel-picker";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCartProducts } from "@/hooks/use-cart-products";
 import { formatIdr } from "@/lib/format";
 import { createOrder } from "@/lib/order.functions";
 import { saveLastOrderHint } from "@/lib/order-access";
+import type { PaymentChannel, PaymentMethod } from "@/lib/payment-channels";
+import { getPaymentChannelOptions } from "@/lib/payment-channels.functions";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
+  // A checkout that cannot list channels still has to render, so the buyer sees
+  // why rather than an error page. Creating the order stays fail-closed: the
+  // server checks the channel again before it writes anything.
+  loader: async (): Promise<{ channels: PaymentChannel[] }> => {
+    try {
+      return { channels: await getPaymentChannelOptions() };
+    } catch (error) {
+      console.error("Unable to load Mayar payment channels", error);
+
+      return { channels: [] };
+    }
+  },
 });
 
 function CheckoutPage() {
+  const { channels } = Route.useLoaderData();
   const { clear, lines } = useCart();
   const {
     error: cartError,
@@ -28,10 +44,37 @@ function CheckoutPage() {
   // recognised as the same checkout rather than a new one. See ADR-0003.
   const idempotencyKey = useRef(crypto.randomUUID());
   const [error, setError] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
+  const [cashtag, setCashtag] = useState("");
+  const selectedChannel = channels.find(
+    (channel) => channel.paymentMethod === paymentMethod
+  );
+
+  // The channel is part of the checkout fingerprint, so changing it makes this
+  // a different attempt. A fresh key keeps the change from colliding with the
+  // one already on record. See ADR-0003.
+  function changePaymentMethod(next: PaymentMethod) {
+    idempotencyKey.current = crypto.randomUUID();
+    setPaymentMethod(next);
+    setCashtag("");
+    setError("");
+  }
+
+  function changeCashtag(next: string) {
+    idempotencyKey.current = crypto.randomUUID();
+    setCashtag(next);
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    if (!paymentMethod) {
+      setError("Choose how you want to pay.");
+
+      return;
+    }
+
     setSubmitting(true);
     const form = new FormData(event.currentTarget);
 
@@ -39,6 +82,7 @@ function CheckoutPage() {
       const result = await createOrder({
         data: {
           addressLine: String(form.get("addressLine") ?? ""),
+          ...(selectedChannel?.needsCashtag ? { cashtag } : {}),
           city: String(form.get("city") ?? ""),
           email: String(form.get("email") ?? ""),
           guestName: String(form.get("guestName") ?? ""),
@@ -46,6 +90,7 @@ function CheckoutPage() {
             productId: line.productId,
             quantity: line.quantity,
           })),
+          paymentMethod,
           phone: String(form.get("phone") ?? ""),
           postalCode: String(form.get("postalCode") ?? ""),
           province: String(form.get("province") ?? ""),
@@ -205,6 +250,19 @@ function CheckoutPage() {
               </div>
             </section>
 
+            <section aria-labelledby="payment-heading">
+              <h2 className="font-medium text-sm" id="payment-heading">
+                Payment method
+              </h2>
+              <PaymentChannelPicker
+                cashtag={cashtag}
+                channels={channels}
+                onCashtagChange={changeCashtag}
+                onValueChange={changePaymentMethod}
+                value={paymentMethod}
+              />
+            </section>
+
             {error ? (
               <p
                 className="rounded-2xl bg-destructive/10 p-4 text-destructive text-sm"
@@ -216,7 +274,7 @@ function CheckoutPage() {
 
             <Button
               className="h-12 w-full rounded-full sm:w-auto"
-              disabled={submitting}
+              disabled={submitting || channels.length === 0}
               type="submit"
             >
               {submitting ? (
@@ -225,7 +283,7 @@ function CheckoutPage() {
                   Creating order
                 </>
               ) : (
-                "Continue to payment"
+                `Pay with ${selectedChannel?.label ?? "your chosen method"}`
               )}
             </Button>
           </form>

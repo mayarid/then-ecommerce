@@ -11,9 +11,37 @@ import {
   refreshOrderPayment,
 } from "@/lib/order.functions";
 import { saveLastOrderHint } from "@/lib/order-access";
+import { findPaymentChannelByMethod } from "@/lib/payment-channels";
 
 const statuses = ["paid", "processing", "shipped", "delivered"] as const;
 const paymentRefreshRetryDelays = [5000, 15_000, 30_000, 60_000] as const;
+const MINUTE_MS = 60 * 1000;
+
+/** Whole minutes left before the reservation lapses, floored at zero. */
+function minutesLeft(expiresAt: Date | number) {
+  const remaining = new Date(expiresAt).getTime() - Date.now();
+
+  return remaining > 0 ? Math.ceil(remaining / MINUTE_MS) : 0;
+}
+
+function useMinutesLeft(expiresAt: Date | number, active: boolean) {
+  const [minutes, setMinutes] = useState(() => minutesLeft(expiresAt));
+
+  useEffect(() => {
+    if (!active) {
+      return;
+    }
+
+    setMinutes(minutesLeft(expiresAt));
+    const timer = window.setInterval(() => {
+      setMinutes(minutesLeft(expiresAt));
+    }, 15_000);
+
+    return () => window.clearInterval(timer);
+  }, [active, expiresAt]);
+
+  return minutes;
+}
 
 export const Route = createFileRoute("/orders/$token")({
   component: OrderStatusPage,
@@ -27,10 +55,65 @@ export const Route = createFileRoute("/orders/$token")({
   },
 });
 
+/**
+ * The payment step, shown only while the order still waits for money.
+ *
+ * The last hop is a Mayar-hosted page: the V2 API publishes no raw payment
+ * instructions, so no virtual account number or QR payload exists to render
+ * here. The panel names the channel the buyer already chose, so leaving the
+ * site does not feel like starting over. See ADR-0016.
+ */
+function PaymentPanel({
+  expiresAt,
+  paymentMethod,
+  paymentUrl,
+}: {
+  expiresAt: Date | number;
+  paymentMethod: string | null;
+  paymentUrl: string;
+}) {
+  const channel = paymentMethod
+    ? findPaymentChannelByMethod(paymentMethod)
+    : undefined;
+  const minutes = useMinutesLeft(expiresAt, true);
+
+  return (
+    <section className="mt-10 rounded-3xl bg-foreground p-6 text-background sm:p-8">
+      <p className="text-background/70 text-sm">
+        {channel
+          ? `Waiting for your ${channel.label} payment`
+          : "Payment required"}
+      </p>
+      <h2 className="mt-2 font-medium text-2xl">
+        Complete payment to confirm your order.
+      </h2>
+      <p className="mt-3 max-w-lg text-background/70 text-sm leading-6">
+        {minutes > 0
+          ? `Your items stay reserved for ${minutes} more ${minutes === 1 ? "minute" : "minutes"}.`
+          : "The reservation on your items has run out. Payment may no longer go through."}{" "}
+        This page checks for your payment on its own, so keep it open. After
+        payment, Mayar returns you here.
+      </p>
+      <a
+        className={buttonVariants({
+          className:
+            "mt-6 bg-background text-foreground hover:bg-background/85",
+          variant: "secondary",
+        })}
+        href={paymentUrl}
+      >
+        {channel ? `Pay with ${channel.label}` : "Continue to payment"}
+        <ExternalLink aria-hidden="true" />
+      </a>
+    </section>
+  );
+}
+
 function OrderStatusPage() {
-  const { items, order, session } = Route.useLoaderData();
+  const { items, order, paymentMethod, session } = Route.useLoaderData();
   const params = Route.useParams();
   const router = useRouter();
+  const awaitingPayment = order.status === "pending_payment";
   const [claiming, setClaiming] = useState(false);
   const [claimError, setClaimError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -207,28 +290,12 @@ function OrderStatusPage() {
         <p className="mt-6 text-muted-foreground text-sm">{refreshNote}</p>
       ) : null}
 
-      {order.status === "pending_payment" && order.paymentUrl ? (
-        <section className="mt-10 rounded-3xl bg-foreground p-6 text-background sm:p-8">
-          <p className="text-background/70 text-sm">Payment required</p>
-          <h2 className="mt-2 font-medium text-2xl">
-            Complete payment to confirm your order.
-          </h2>
-          <p className="mt-3 max-w-lg text-background/70 text-sm leading-6">
-            Your items are reserved for 30 minutes. After payment, Mayar returns
-            you here. Use Refresh status if the page still shows pending.
-          </p>
-          <a
-            className={buttonVariants({
-              className:
-                "mt-6 bg-background text-foreground hover:bg-background/85",
-              variant: "secondary",
-            })}
-            href={order.paymentUrl}
-          >
-            Continue to payment
-            <ExternalLink aria-hidden="true" />
-          </a>
-        </section>
+      {awaitingPayment && order.paymentUrl ? (
+        <PaymentPanel
+          expiresAt={order.reservationExpiresAt}
+          paymentMethod={paymentMethod}
+          paymentUrl={order.paymentUrl}
+        />
       ) : null}
 
       {session && !order.userId ? (

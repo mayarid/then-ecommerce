@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { PAYMENT_METHODS } from "@/lib/payment-channels";
+
 export const cartLineSchema = z.object({
   productId: z.string().min(1),
   quantity: z.number().int().min(1).max(99),
@@ -7,19 +9,36 @@ export const cartLineSchema = z.object({
 
 export const cartLinesSchema = z.array(cartLineSchema).min(1).max(50);
 
-export const checkoutSchema = z.object({
-  addressLine: z.string().trim().min(5).max(200),
-  city: z.string().trim().min(2).max(80),
-  email: z.string().trim().email(),
-  guestName: z.string().trim().min(2).max(100),
-  lines: cartLinesSchema,
-  phone: z.string().trim().min(8).max(24),
-  postalCode: z
-    .string()
-    .trim()
-    .regex(/^\d{5}$/),
-  province: z.string().trim().min(2).max(80),
-});
+export const checkoutSchema = z
+  .object({
+    addressLine: z.string().trim().min(5).max(200),
+    cashtag: z.string().trim().min(1).max(64).optional(),
+    city: z.string().trim().min(2).max(80),
+    email: z.string().trim().email(),
+    guestName: z.string().trim().min(2).max(100),
+    lines: cartLinesSchema,
+    // The buyer picks the channel, and the invoice is locked to it. The value
+    // is only a candidate here: the enabled list is checked on the server
+    // before checkout writes anything.
+    paymentMethod: z.enum(PAYMENT_METHODS),
+    phone: z.string().trim().min(8).max(24),
+    postalCode: z
+      .string()
+      .trim()
+      .regex(/^\d{5}$/),
+    province: z.string().trim().min(2).max(80),
+  })
+  .superRefine((value, ctx) => {
+    // Documented on POST /invoices/create: Jenius is the one channel that needs
+    // a second identifier from the buyer.
+    if (value.paymentMethod === "ewallet/jeniuspay" && !value.cashtag) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Enter your Jenius cashtag",
+        path: ["cashtag"],
+      });
+    }
+  });
 
 export const productInputSchema = z.object({
   categoryId: z.string().nullable().optional(),

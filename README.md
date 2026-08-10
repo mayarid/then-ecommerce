@@ -73,25 +73,39 @@ Keep `MAYAR_ENVIRONMENT=sandbox` until you have completed a test checkout.
 
 ## Payment lifecycle
 
-1. Checkout reserves available stock for 30 minutes and writes the order,
+1. The customer picks a payment channel at checkout. The list comes from the
+   channels enabled on your Mayar account, and is cached for six hours.
+2. Checkout reserves available stock for 30 minutes and writes the order,
    its items, the reservation, and the idempotency record in a single D1 batch.
    Overselling is refused by a check constraint, which rolls the batch back.
-2. The server creates a Mayar invoice from the order snapshot.
-3. The customer pays and returns to the order status page.
-4. Payment is proved by fetching the Mayar transaction detail and matching the
+3. The server creates a Mayar invoice from the order snapshot, locked to the
+   chosen channel, so the hosted page offers only that one.
+4. The customer pays and returns to the order status page.
+5. Payment is proved by fetching the Mayar transaction detail and matching the
    amount, the `paid` status, and the order in `extraData`. A browser return
    never marks an order paid, and neither does a webhook payload on its own.
-5. The order status page checks payment on load, on a short retry schedule, and
+6. The order status page checks payment on load, on a short retry schedule, and
    when the tab regains focus.
-6. Every five minutes a cron trigger reconciles orders whose reservation has
+7. Every five minutes a cron trigger reconciles orders whose reservation has
    expired. It asks Mayar first: a paid order is settled, an unpaid one is
    cancelled and its stock returned, and an order it cannot verify is left for
    the next run.
-7. Admin payment resync uses the same evidence gate as the customer refresh.
+8. Admin payment resync uses the same evidence gate as the customer refresh.
 
 **The webhook is optional.** It only makes confirmation faster. Because payment
 is always proved by a transaction lookup, and because the cron reconciles
 expired orders, a store that never registers the webhook is still correct.
+
+**The payment page is Mayar's.** Choosing the channel is what this store owns;
+the hosted page finishes it. A channel-locked invoice does come back carrying
+the raw instructions, including the virtual account number, but that field is
+undocumented and nothing here depends on it.
+See [ADR-0016](docs/adr/0016-lock-invoices-to-a-chosen-payment-channel.md).
+
+**Some enabled channels are not offered.** The invoice endpoint accepts fourteen
+channel values. A channel your account has enabled but Mayar does not accept
+there, such as OVO or Indomaret, is hidden rather than shown as a choice that
+would not be honoured.
 
 Refunds are completed in the Mayar dashboard and then marked as refunded in the
 admin panel. No undocumented refund endpoint is called.
