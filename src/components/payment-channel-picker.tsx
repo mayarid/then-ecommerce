@@ -1,4 +1,4 @@
-import { Landmark, QrCode, Store, Wallet } from "lucide-react";
+import { Landmark, QrCode, Wallet } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,7 +14,6 @@ import {
 const groupIcons: Record<PaymentChannelGroup, typeof QrCode> = {
   ewallet: Wallet,
   qris: QrCode,
-  retail: Store,
   va: Landmark,
 };
 

@@ -7,16 +7,27 @@
  * it is written out here and has to be edited by hand when Mayar adds a
  * channel. See ADR-0016.
  *
+ * Every value below was created against the sandbox and checked, rather than
+ * copied from the documentation. Four values on the documented list did not
+ * survive that check and are absent:
+ *
+ * - `ewallet/jenius` is refused. The value that works is `ewallet/jeniuspay`.
+ * - `outlet/alfamart` is refused outright, and so is `alfamart`.
+ * - `retail/alfamart` and `retail/indomaret` are accepted, then fail to
+ *   prepare: `field 'payment_method.over_the_counter' is required`. No request
+ *   field can supply it, so a retail outlet cannot be locked at all.
+ * - `ewallet/gopay` is accepted, then fails to prepare:
+ *   `channel_properties.failure_return_url is mandatory`. Invoice create takes
+ *   no such field. Restore GoPay when Mayar sends it.
+ *
  * This module holds no secrets and is safe in the client bundle.
  */
 
 export const PAYMENT_METHODS = [
   "ewallet/dana",
-  "ewallet/gopay",
   "ewallet/jeniuspay",
   "ewallet/linkaja",
   "ewallet/shopeepay",
-  "outlet/alfamart",
   "qris",
   "va/bjb",
   "va/bni",
@@ -29,7 +40,7 @@ export const PAYMENT_METHODS = [
 
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
-export type PaymentChannelGroup = "ewallet" | "qris" | "retail" | "va";
+export type PaymentChannelGroup = "ewallet" | "qris" | "va";
 
 export type PaymentChannel = {
   /** The `code` Mayar reports for this channel. */
@@ -117,14 +128,6 @@ export const PAYMENT_CHANNELS: readonly PaymentChannel[] = [
     type: "ewallet",
   },
   {
-    code: "GOPAY",
-    group: "ewallet",
-    label: "GoPay",
-    needsCashtag: false,
-    paymentMethod: "ewallet/gopay",
-    type: "ewallet",
-  },
-  {
     code: "LINKAJA",
     group: "ewallet",
     label: "LinkAja",
@@ -152,14 +155,6 @@ export const PAYMENT_CHANNELS: readonly PaymentChannel[] = [
     paymentMethod: "ewallet/jeniuspay",
     type: "ewallet",
   },
-  {
-    code: "ALFAMART",
-    group: "retail",
-    label: "Alfamart",
-    needsCashtag: false,
-    paymentMethod: "outlet/alfamart",
-    type: "retail",
-  },
 ];
 
 export const PAYMENT_CHANNEL_GROUPS: ReadonlyArray<{
@@ -169,7 +164,6 @@ export const PAYMENT_CHANNEL_GROUPS: ReadonlyArray<{
   { group: "qris", label: "QRIS" },
   { group: "va", label: "Bank transfer" },
   { group: "ewallet", label: "E-wallet" },
-  { group: "retail", label: "Retail outlet" },
 ];
 
 /**

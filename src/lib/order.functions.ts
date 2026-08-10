@@ -6,6 +6,7 @@ import { type BatchStatement, getDb, runBatch } from "@/db";
 import {
   checkoutRequests,
   inventoryReservations,
+  type JsonObject,
   orderItems,
   orders,
   paymentAttempts,
@@ -28,6 +29,10 @@ import {
 import { processMayarWebhook } from "@/lib/payment.functions";
 import { isPaymentMethod } from "@/lib/payment-channels";
 import { assertPaymentMethodEnabled } from "@/lib/payment-channels.functions";
+import {
+  type PaymentInstruction,
+  parsePaymentInstruction,
+} from "@/lib/payment-instructions";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { getRuntimeEnv, getShippingFlatRate } from "@/lib/runtime-env";
 import type { CheckoutInput } from "@/lib/validation";
@@ -192,13 +197,16 @@ async function replayCheckout(
 }
 
 /**
- * The channel the latest attempt was locked to, for labelling the payment step.
+ * What the latest attempt asked for, and how to pay it.
  *
- * It is read from the attempt rather than the order, because an order can hold
- * more than one attempt and only the newest one describes the link the buyer is
- * about to open.
+ * Both are read from the attempt rather than the order, because an order can
+ * hold more than one attempt and only the newest one describes the payment the
+ * buyer is about to make.
  */
-async function readOrderPaymentMethod(orderId: string) {
+async function readOrderPaymentContext(orderId: string): Promise<{
+  instruction: PaymentInstruction | null;
+  paymentMethod: string | null;
+}> {
   const [attempt] = await getDb()
     .select({ metadata: paymentAttempts.metadata })
     .from(paymentAttempts)
@@ -207,7 +215,12 @@ async function readOrderPaymentMethod(orderId: string) {
     .limit(1);
   const method = attempt?.metadata?.paymentMethod;
 
-  return isPaymentMethod(method) ? method : null;
+  return {
+    // Re-parsed rather than trusted as stored, so a row written by an older
+    // build cannot put an unexpected shape in front of the renderer.
+    instruction: parsePaymentInstruction(attempt?.metadata?.paymentDetail),
+    paymentMethod: isPaymentMethod(method) ? method : null,
+  };
 }
 
 async function describeStockShortfall(
@@ -472,6 +485,12 @@ export async function createOrderForCheckout(
         metadata: {
           environment: getRuntimeEnv().MAYAR_ENVIRONMENT ?? "sandbox",
           paymentMethod: data.paymentMethod,
+          // Mayar offers the payment instructions once, on create, and never
+          // again on invoice detail. Storing them here is the only way the
+          // order page can show a virtual account number or a QR. See ADR-0017.
+          ...(invoice.paymentDetail
+            ? { paymentDetail: invoice.paymentDetail as JsonObject }
+            : {}),
         },
         orderId,
         paymentUrl: invoice.link,
@@ -532,16 +551,21 @@ export const getOrderByAccessToken = createServerFn({ method: "GET" })
       throw new Error("Order not found or access link expired");
     }
 
-    const [items, paymentMethod] = await Promise.all([
+    const [items, payment] = await Promise.all([
       db
         .select()
         .from(orderItems)
         .where(eq(orderItems.orderId, order.id))
         .orderBy(asc(orderItems.createdAt)),
-      readOrderPaymentMethod(order.id),
+      readOrderPaymentContext(order.id),
     ]);
 
-    return { items, order, paymentMethod };
+    return {
+      instruction: payment.instruction,
+      items,
+      order,
+      paymentMethod: payment.paymentMethod,
+    };
   });
 
 export const getMyOrders = createServerFn({ method: "GET" }).handler(

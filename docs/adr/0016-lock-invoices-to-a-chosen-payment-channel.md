@@ -2,7 +2,7 @@
 
 Checkout asks the buyer which payment channel to use, and the Mayar invoice is created locked to that channel. The buyer no longer meets a generic hosted page listing every channel the store accepts.
 
-**The last hop stays hosted, for now**
+**The last hop stays hosted, for now** — superseded by [ADR-0017](0017-render-payment-instructions-in-our-own-interface.md), which draws the instructions in our own interface. The reasoning below still explains why `POST /qr-codes/create` is not used, and why the hosted link remains on the page.
 
 The documented V2 surface publishes no raw payment instructions. `GET /invoices/{id}` returns a `paymentUrl`, and `GET /transactions/{id}` names the `paymentMethod` but carries no instruction payload.
 
@@ -20,15 +20,22 @@ It is not built on here. The field appears on no endpoint page, so it carries no
 
 The lookup key is `type:code`, not `code` alone. The sandbox reports both a virtual account and a retail channel under the code `BRI`, and matching on the code would turn BRILink into a BRI virtual account.
 
-Every value in that file was checked against the sandbox rather than copied from the page, and one was wrong. The enum lists `ewallet/jenius`, which the API refuses with `Payment method "ewallet/jenius" is not available or disabled`. The value it accepts is `ewallet/jeniuspay`, the spelling used further down the same page in the `cashtag` note. Treat the enum as a starting point to verify, not as a specification.
+Every value in that file was created against the sandbox and checked, rather than copied from the page. Four of the fourteen documented values did not survive:
+
+- `ewallet/jenius` is refused with `Payment method "ewallet/jenius" is not available or disabled`. The value that works is `ewallet/jeniuspay`, the spelling used further down the same page in the `cashtag` note.
+- `outlet/alfamart` is refused outright. So is `alfamart`.
+- `retail/alfamart` and `retail/indomaret` are accepted and then fail to prepare, with `field 'payment_method.over_the_counter' is required for type 'OVER_THE_COUNTER'`. Invoice create takes no field that supplies it, so a retail outlet cannot be locked at all.
+- `ewallet/gopay` is accepted and then fails to prepare, with `channel_properties.failure_return_url is mandatory`. Invoice create takes no such field either.
+
+Twelve values remain, and each one has produced a working invoice. Treat the documented enum as a list of candidates to verify, not as a specification. Verifying means reading `statusCode` **and** `paymentDetail`: a wrong value fails in three different ways, and only one of them is an HTTP error.
 
 **Channels that cannot be locked are hidden**
 
-The documented `paymentMethod` list holds fourteen values. A store can have more channels enabled than that. On the sandbox account, OVO, Flip, Bank Lainnya, Indomaret, and BRILink are all enabled and all absent from the list.
+A store can have more channels enabled than the list accepts. On the sandbox account, OVO, Flip, Bank Lainnya, Indomaret, BRILink, Alfamart, and GoPay are all enabled and none can be locked.
 
-An undocumented value is not rejected. `ewallet/ovo` returned `200 success`, and the invoice came back with an empty `paymentDetail` and no channel prepared: the value was accepted and then ignored, producing an ordinary unrestricted invoice. A buyer who picked OVO would have landed on a page listing every other channel, which is exactly what choosing was supposed to prevent.
+An unusable value is not always rejected. `ewallet/ovo` returned `200 success`, and the invoice came back with an empty `paymentDetail` and no channel prepared: accepted, then ignored, producing an ordinary unrestricted invoice. A buyer who picked OVO would have landed on a page listing every other channel, which is exactly what choosing was supposed to prevent.
 
-So those channels are not offered, and the checkout schema refuses any value outside the fourteen. Losing a channel is the smaller cost; the alternative hides a broken promise inside a working-looking interface.
+So those channels are not offered, and the checkout schema refuses any value outside the twelve. Losing a channel is the smaller cost; the alternative hides a broken promise inside a working-looking interface. GoPay and the retail outlets can come back the day Mayar sends the fields their processor asks for.
 
 **The enabled list is server-owned and cached**
 

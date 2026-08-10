@@ -80,7 +80,8 @@ Keep `MAYAR_ENVIRONMENT=sandbox` until you have completed a test checkout.
    Overselling is refused by a check constraint, which rolls the batch back.
 3. The server creates a Mayar invoice from the order snapshot, locked to the
    chosen channel, so the hosted page offers only that one.
-4. The customer pays and returns to the order status page.
+4. The customer pays with the details shown on the order status page, or on
+   Mayar's page when that channel offers no details to show.
 5. Payment is proved by fetching the Mayar transaction detail and matching the
    amount, the `paid` status, and the order in `extraData`. A browser return
    never marks an order paid, and neither does a webhook payload on its own.
@@ -96,16 +97,20 @@ Keep `MAYAR_ENVIRONMENT=sandbox` until you have completed a test checkout.
 is always proved by a transaction lookup, and because the cron reconciles
 expired orders, a store that never registers the webhook is still correct.
 
-**The payment page is Mayar's.** Choosing the channel is what this store owns;
-the hosted page finishes it. A channel-locked invoice does come back carrying
-the raw instructions, including the virtual account number, but that field is
-undocumented and nothing here depends on it.
-See [ADR-0016](docs/adr/0016-lock-invoices-to-a-chosen-payment-channel.md).
+**The payment step is drawn here, not on Mayar.** A channel-locked invoice comes
+back carrying the real instructions, so the order page shows the virtual account
+number, the QRIS code, or the e-wallet button itself. The hosted Mayar link stays
+on the page as a way out. When the instructions are missing or unrecognised, and
+for a retail outlet which has none, that link becomes the whole step. The field
+this relies on is undocumented, so every unknown shape falls back rather than
+guesses. See
+[ADR-0017](docs/adr/0017-render-payment-instructions-in-our-own-interface.md).
 
-**Some enabled channels are not offered.** The invoice endpoint accepts fourteen
-channel values. A channel your account has enabled but Mayar does not accept
-there, such as OVO or Indomaret, is hidden rather than shown as a choice that
-would not be honoured.
+**Some enabled channels are not offered.** Twelve channel values were proved to
+produce a working invoice: QRIS, seven bank transfers, and four e-wallets. A
+channel your account has enabled that the invoice endpoint cannot actually
+prepare, such as OVO, GoPay, Alfamart, or Indomaret, is hidden rather than shown
+as a choice that would break at checkout.
 
 Refunds are completed in the Mayar dashboard and then marked as refunded in the
 admin panel. No undocumented refund endpoint is called.

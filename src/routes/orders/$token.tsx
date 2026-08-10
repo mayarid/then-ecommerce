@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Check, Circle, Copy, ExternalLink, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
+import { PaymentInstructions } from "@/components/payment-instructions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { getSession } from "@/lib/auth.functions";
 import { formatIdr, formatOrderStatus } from "@/lib/format";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/order.functions";
 import { saveLastOrderHint } from "@/lib/order-access";
 import { findPaymentChannelByMethod } from "@/lib/payment-channels";
+import type { PaymentInstruction } from "@/lib/payment-instructions";
 
 const statuses = ["paid", "processing", "shipped", "delivered"] as const;
 const paymentRefreshRetryDelays = [5000, 15_000, 30_000, 60_000] as const;
@@ -58,17 +60,20 @@ export const Route = createFileRoute("/orders/$token")({
 /**
  * The payment step, shown only while the order still waits for money.
  *
- * The last hop is a Mayar-hosted page: the V2 API publishes no raw payment
- * instructions, so no virtual account number or QR payload exists to render
- * here. The panel names the channel the buyer already chose, so leaving the
- * site does not feel like starting over. See ADR-0016.
+ * When Mayar handed back the instructions at invoice creation, they are drawn
+ * here and the buyer never has to leave. When it did not, which is the case for
+ * a retail outlet and for any shape this build does not recognise, the hosted
+ * link carries the whole step instead. It stays on the page either way, so a
+ * buyer whose QR will not scan always has somewhere to go. See ADR-0017.
  */
 function PaymentPanel({
   expiresAt,
+  instruction,
   paymentMethod,
   paymentUrl,
 }: {
   expiresAt: Date | number;
+  instruction: PaymentInstruction | null;
   paymentMethod: string | null;
   paymentUrl: string;
 }) {
@@ -85,32 +90,47 @@ function PaymentPanel({
           : "Payment required"}
       </p>
       <h2 className="mt-2 font-medium text-2xl">
-        Complete payment to confirm your order.
+        {instruction
+          ? "Pay with the details below."
+          : "Complete payment to confirm your order."}
       </h2>
       <p className="mt-3 max-w-lg text-background/70 text-sm leading-6">
         {minutes > 0
           ? `Your items stay reserved for ${minutes} more ${minutes === 1 ? "minute" : "minutes"}.`
           : "The reservation on your items has run out. Payment may no longer go through."}{" "}
-        This page checks for your payment on its own, so keep it open. After
-        payment, Mayar returns you here.
+        This page checks for your payment on its own, so keep it open.
       </p>
-      <a
-        className={buttonVariants({
-          className:
-            "mt-6 bg-background text-foreground hover:bg-background/85",
-          variant: "secondary",
-        })}
-        href={paymentUrl}
-      >
-        {channel ? `Pay with ${channel.label}` : "Continue to payment"}
-        <ExternalLink aria-hidden="true" />
-      </a>
+
+      {instruction ? <PaymentInstructions instruction={instruction} /> : null}
+
+      {instruction ? (
+        <a
+          className="mt-5 inline-flex items-center gap-2 text-background/70 text-sm underline-offset-4 hover:text-background hover:underline"
+          href={paymentUrl}
+        >
+          Having trouble? Open the payment page
+          <ExternalLink aria-hidden="true" className="size-3.5" />
+        </a>
+      ) : (
+        <a
+          className={buttonVariants({
+            className:
+              "mt-6 bg-background text-foreground hover:bg-background/85",
+            variant: "secondary",
+          })}
+          href={paymentUrl}
+        >
+          {channel ? `Pay with ${channel.label}` : "Continue to payment"}
+          <ExternalLink aria-hidden="true" />
+        </a>
+      )}
     </section>
   );
 }
 
 function OrderStatusPage() {
-  const { items, order, paymentMethod, session } = Route.useLoaderData();
+  const { instruction, items, order, paymentMethod, session } =
+    Route.useLoaderData();
   const params = Route.useParams();
   const router = useRouter();
   const awaitingPayment = order.status === "pending_payment";
@@ -293,6 +313,7 @@ function OrderStatusPage() {
       {awaitingPayment && order.paymentUrl ? (
         <PaymentPanel
           expiresAt={order.reservationExpiresAt}
+          instruction={instruction}
           paymentMethod={paymentMethod}
           paymentUrl={order.paymentUrl}
         />
