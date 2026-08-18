@@ -5,7 +5,7 @@
 A single-merchant ecommerce starter that runs entirely on Cloudflare, built with
 TanStack Start, Better Auth, Drizzle ORM, D1, R2, and Mayar V2 payments.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/julianromli/then-ecommerce-cf)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mayarid/then-ecommerce)
 
 Everything the store needs is provisioned for you. Prepare three secrets before
 you click: see [Environment variables](#environment-variables).
@@ -35,8 +35,8 @@ you click: see [Environment variables](#environment-variables).
 Requires Bun 1.3 or newer.
 
 ```sh
-git clone https://github.com/julianromli/then-ecommerce-cf
-cd then-ecommerce-cf
+git clone https://github.com/mayarid/then-ecommerce
+cd then-ecommerce
 bun install
 bun run setup   # writes .dev.vars, mints secrets, migrates the local D1
 bun dev

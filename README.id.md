@@ -6,7 +6,7 @@ Starter ecommerce untuk satu penjual yang berjalan sepenuhnya di Cloudflare,
 dibangun dengan TanStack Start, Better Auth, Drizzle ORM, D1, R2, dan
 pembayaran Mayar V2.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/julianromli/then-ecommerce-cf)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mayarid/then-ecommerce)
 
 Semua yang dibutuhkan toko disiapkan otomatis. Siapkan tiga secret sebelum Anda
 klik: lihat [Variabel lingkungan](#variabel-lingkungan).
@@ -37,8 +37,8 @@ klik: lihat [Variabel lingkungan](#variabel-lingkungan).
 Membutuhkan Bun 1.3 atau yang lebih baru.
 
 ```sh
-git clone https://github.com/julianromli/then-ecommerce-cf
-cd then-ecommerce-cf
+git clone https://github.com/mayarid/then-ecommerce
+cd then-ecommerce
 bun install
 bun run setup   # menulis .dev.vars, membuat secret, migrasi D1 lokal
 bun dev
