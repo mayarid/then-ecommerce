@@ -84,7 +84,7 @@ export const runSetup = createServerFn({ method: "POST" })
       // The seed writes are idempotent.
       const seeded = await seedDatabase();
 
-      await getAuth().api.signUpEmail({
+      await (await getAuth()).api.signUpEmail({
         body: {
           email: data.email,
           name: data.name,

@@ -8,8 +8,8 @@ pembayaran Mayar V2.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mayarid/then-ecommerce)
 
-Semua yang dibutuhkan toko disiapkan otomatis. Siapkan dua secret sebelum Anda
-klik: lihat [Variabel lingkungan](#variabel-lingkungan).
+Semua yang dibutuhkan toko disiapkan otomatis. Siapkan satu secret sebelum
+Anda klik: lihat [Variabel lingkungan](#variabel-lingkungan).
 
 ## Stack
 
@@ -26,7 +26,7 @@ klik: lihat [Variabel lingkungan](#variabel-lingkungan).
 
 1. Klik **Deploy to Cloudflare**. Cloudflare akan fork repositori ini lalu
    membuat database D1, bucket R2, dan rate limiter dari `wrangler.jsonc`.
-2. Isi dua secret yang diminta.
+2. Isi API key Mayar yang diminta.
 3. Setelah deploy selesai, buka `https://<worker-anda>.workers.dev`. Halaman
    depan mengarah ke `/setup`. Halaman itu membuat akun administrator
    pertama, menambahkan produk contoh, dan menampilkan URL webhook Mayar yang
@@ -40,7 +40,7 @@ Membutuhkan Bun 1.3 atau yang lebih baru.
 git clone https://github.com/mayarid/then-ecommerce
 cd then-ecommerce
 bun install
-bun run setup   # menulis .dev.vars, membuat secret, migrasi D1 lokal
+bun run setup   # migrasi D1 lokal
 bun dev
 ```
 
@@ -54,11 +54,15 @@ tanpa ID di `wrangler.jsonc`, jadi Wrangler membuatnya secara lokal saat
 
 | Variabel | Wajib | Keterangan |
 | --- | --- | --- |
-| `BETTER_AUTH_SECRET` | Ya | Menandatangani cookie sesi. Buat dengan `openssl rand -base64 32`. Mengubahnya membuat semua sesi keluar. |
 | `MAYAR_API_KEY` | Ya | API key Mayar. Key sandbox dan production berbeda. |
 | `BETTER_AUTH_URL` | Tidak | URL publik Anda. Tanpa ini, Better Auth membaca origin dari setiap request. |
 | `MAYAR_ENVIRONMENT` | Tidak | `sandbox` (bawaan) atau `production`. Diatur di `wrangler.jsonc`. |
 | `SHIPPING_FLAT_RATE` | Tidak | Ongkos kirim flat dalam IDR, dikenakan sekali per pesanan. Diatur di `wrangler.jsonc`. |
+
+Tidak ada `BETTER_AUTH_SECRET` yang perlu diisi. Worker membuatnya sendiri
+saat pertama dipakai dan menyimpannya di D1, jadi sesi tetap valid setelah
+restart dan formulir deploy tetap singkat. Lihat
+[ADR-0017](docs/adr/0017-generate-the-auth-secret-on-first-use.md).
 
 Biarkan `MAYAR_ENVIRONMENT=sandbox` sampai Anda berhasil menyelesaikan satu
 checkout percobaan.

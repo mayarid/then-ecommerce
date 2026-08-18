@@ -3,7 +3,6 @@ import { env as cloudflareEnv } from "./cloudflare-env";
 export type MayarEnvironment = "sandbox" | "production";
 
 export type RuntimeEnv = {
-  BETTER_AUTH_SECRET?: string;
   BETTER_AUTH_URL?: string;
   MAYAR_API_KEY?: string;
   MAYAR_ENV?: MayarEnvironment;
@@ -27,7 +26,6 @@ export function getRuntimeEnv(): RuntimeEnv {
   const environment = value("MAYAR_ENVIRONMENT") ?? value("MAYAR_ENV");
 
   return {
-    BETTER_AUTH_SECRET: value("BETTER_AUTH_SECRET"),
     BETTER_AUTH_URL: value("BETTER_AUTH_URL"),
     MAYAR_API_KEY: value("MAYAR_API_KEY"),
     MAYAR_ENVIRONMENT: environment === "production" ? "production" : "sandbox",

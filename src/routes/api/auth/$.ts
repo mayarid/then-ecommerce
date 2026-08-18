@@ -19,7 +19,7 @@ async function handleAuth(request: Request) {
     );
   }
 
-  return getAuth().handler(request);
+  return (await getAuth()).handler(request);
 }
 
 export const Route = createFileRoute("/api/auth/$")({

@@ -7,7 +7,7 @@ TanStack Start, Better Auth, Drizzle ORM, D1, R2, and Mayar V2 payments.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mayarid/then-ecommerce)
 
-Everything the store needs is provisioned for you. Prepare two secrets before
+Everything the store needs is provisioned for you. Prepare one secret before
 you click: see [Environment variables](#environment-variables).
 
 ## Stack
@@ -25,7 +25,7 @@ you click: see [Environment variables](#environment-variables).
 
 1. Click **Deploy to Cloudflare**. Cloudflare forks the repository and creates
    the D1 database, the R2 bucket, and the rate limiters from `wrangler.jsonc`.
-2. Fill in the two secrets it asks for.
+2. Fill in the Mayar API key it asks for.
 3. When the deploy finishes, open `https://<your-worker>.workers.dev`. The
    home page sends you to `/setup`. That page creates your administrator
    account, adds sample products, and shows the Mayar webhook URL to
@@ -39,7 +39,7 @@ Requires Bun 1.3 or newer.
 git clone https://github.com/mayarid/then-ecommerce
 cd then-ecommerce
 bun install
-bun run setup   # writes .dev.vars, mints secrets, migrates the local D1
+bun run setup   # migrates the local D1
 bun dev
 ```
 
@@ -53,11 +53,14 @@ provisions them on your account at deploy time.
 
 | Variable | Required | What it is |
 | --- | --- | --- |
-| `BETTER_AUTH_SECRET` | Yes | Signs session cookies. Generate with `openssl rand -base64 32`. Changing it signs everyone out. |
 | `MAYAR_API_KEY` | Yes | Mayar API key. Sandbox and production keys differ. |
 | `BETTER_AUTH_URL` | No | Your public URL. Without it, Better Auth reads the origin from each request. |
 | `MAYAR_ENVIRONMENT` | No | `sandbox` (default) or `production`. Set in `wrangler.jsonc`. |
 | `SHIPPING_FLAT_RATE` | No | Flat shipping in IDR, applied once per order. Set in `wrangler.jsonc`. |
+
+There is no `BETTER_AUTH_SECRET` to set. The Worker generates it on first use
+and stores it in D1, so sessions survive restarts and the deploy form stays
+short. See [ADR-0017](docs/adr/0017-generate-the-auth-secret-on-first-use.md).
 
 Keep `MAYAR_ENVIRONMENT=sandbox` until you have completed a test checkout.
 
