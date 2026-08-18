@@ -2,7 +2,23 @@
 
 ## customer
 
-A person who places or pays for an order.
+A person who places or pays for an order. A customer may have no account.
+_Avoid_: user, buyer, client
+
+## account
+
+A signed-in identity with an email and a password.
+_Avoid_: user
+
+## administrator
+
+An account that has authority to operate the store.
+
+## setup
+
+The one-time act that creates the administrator and opens the store to customer
+accounts.
+_Avoid_: bootstrap, install
 
 ## order
 

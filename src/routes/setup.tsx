@@ -35,7 +35,6 @@ function SetupPage() {
             email: String(form.get("email") ?? ""),
             name: String(form.get("name") ?? ""),
             password: String(form.get("password") ?? ""),
-            token: String(form.get("token") ?? ""),
           },
         })
       );
@@ -120,28 +119,8 @@ function SetupPage() {
         products, and generates your Mayar webhook secret.
       </p>
 
-      {status.tokenConfigured ? null : (
-        <Alert className="mt-6" variant="destructive">
-          <AlertTitle>Setup token missing</AlertTitle>
-          <AlertDescription>
-            SETUP_TOKEN is not set. Add it as a Worker secret, then reload.
-          </AlertDescription>
-        </Alert>
-      )}
-
       <form className="mt-8" onSubmit={submit}>
         <FieldGroup>
-          <Field data-invalid={error ? true : undefined}>
-            <FieldLabel htmlFor="setup-token">Setup token</FieldLabel>
-            <Input
-              aria-invalid={Boolean(error)}
-              autoComplete="off"
-              id="setup-token"
-              name="token"
-              required
-              type="password"
-            />
-          </Field>
           <Field data-invalid={error ? true : undefined}>
             <FieldLabel htmlFor="setup-name">Your name</FieldLabel>
             <Input
@@ -180,11 +159,7 @@ function SetupPage() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
-          <Button
-            className="mt-2"
-            disabled={submitting || !status.tokenConfigured}
-            type="submit"
-          >
+          <Button className="mt-2" disabled={submitting} type="submit">
             {submitting ? <Spinner data-icon="inline-start" /> : null}
             {submitting ? "Completing setup" : "Complete setup"}
           </Button>

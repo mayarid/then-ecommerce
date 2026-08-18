@@ -8,7 +8,7 @@ pembayaran Mayar V2.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mayarid/then-ecommerce)
 
-Semua yang dibutuhkan toko disiapkan otomatis. Siapkan tiga secret sebelum Anda
+Semua yang dibutuhkan toko disiapkan otomatis. Siapkan dua secret sebelum Anda
 klik: lihat [Variabel lingkungan](#variabel-lingkungan).
 
 ## Stack
@@ -26,11 +26,11 @@ klik: lihat [Variabel lingkungan](#variabel-lingkungan).
 
 1. Klik **Deploy to Cloudflare**. Cloudflare akan fork repositori ini lalu
    membuat database D1, bucket R2, dan rate limiter dari `wrangler.jsonc`.
-2. Isi tiga secret yang diminta.
-3. Setelah deploy selesai, buka `https://<worker-anda>.workers.dev/setup` lalu
-   masukkan setup token Anda. Halaman itu membuat akun administrator pertama,
-   menambahkan produk contoh, dan menampilkan URL webhook Mayar yang perlu
-   didaftarkan.
+2. Isi dua secret yang diminta.
+3. Setelah deploy selesai, buka `https://<worker-anda>.workers.dev`. Halaman
+   depan mengarah ke `/setup`. Halaman itu membuat akun administrator
+   pertama, menambahkan produk contoh, dan menampilkan URL webhook Mayar yang
+   perlu didaftarkan. Sign-in tertutup sampai langkah ini selesai.
 
 ### Pengembangan lokal
 
@@ -44,8 +44,7 @@ bun run setup   # menulis .dev.vars, membuat secret, migrasi D1 lokal
 bun dev
 ```
 
-Lalu buka `http://localhost:3000/setup` dan pakai token yang dicetak oleh
-`bun run setup`.
+Lalu buka `http://localhost:3000`. Halaman depan mengarah ke `/setup`.
 
 ## Variabel lingkungan
 
@@ -56,7 +55,6 @@ tanpa ID di `wrangler.jsonc`, jadi Wrangler membuatnya secara lokal saat
 | Variabel | Wajib | Keterangan |
 | --- | --- | --- |
 | `BETTER_AUTH_SECRET` | Ya | Menandatangani cookie sesi. Buat dengan `openssl rand -base64 32`. Mengubahnya membuat semua sesi keluar. |
-| `SETUP_TOKEN` | Ya | Membuka halaman `/setup` yang hanya berjalan sekali. Isi dengan string acak yang panjang. |
 | `MAYAR_API_KEY` | Ya | API key Mayar. Key sandbox dan production berbeda. |
 | `BETTER_AUTH_URL` | Tidak | URL publik Anda. Tanpa ini, Better Auth membaca origin dari setiap request. |
 | `MAYAR_ENVIRONMENT` | Tidak | `sandbox` (bawaan) atau `production`. Diatur di `wrangler.jsonc`. |
@@ -67,19 +65,20 @@ checkout percobaan.
 
 ## Setelah deploy pertama
 
-Sebuah tombol **?** mengambang muncul di pojok kiri bawah setiap halaman selama
-setup belum selesai, dan membuka checklist yang sama ini dalam bentuk sheet.
-Tombol itu hilang selamanya begitu `/setup` selesai, jadi pembeli tidak pernah
-melihatnya. Daftar langkahnya ada di
+Halaman depan mengarah ke `/setup` sampai administrator ada. Setelah itu, sisa
+langkah ada di ringkasan admin sebagai **Finish your store**. Pembeli tidak
+pernah melihatnya. Salinannya ada di
 [`src/lib/setup-guide.ts`](src/lib/setup-guide.ts) — ubah file itu dan bagian
 ini bersamaan, kalau tidak keduanya akan berbeda isi.
 
 1. Selesaikan `/setup`.
-2. Daftarkan URL webhook Mayar yang ditampilkan halaman setup. Ini opsional;
-   lihat [Alur pembayaran](#alur-pembayaran).
+2. Daftarkan URL webhook Mayar yang ditampilkan di ringkasan admin. Ini
+   opsional; lihat [Alur pembayaran](#alur-pembayaran).
 3. Set `BETTER_AUTH_URL` ke URL publik Anda. Disarankan: tanpa ini, pemeriksaan
    origin akan percaya pada host mana pun yang melayani request tersebut.
-4. Pertimbangkan lokasi database D1 Anda. Deploy sekali klik tidak bisa memilih
+4. Ganti produk contoh.
+5. Ubah `MAYAR_ENVIRONMENT` ke production setelah satu checkout sandbox berhasil.
+6. Pertimbangkan lokasi database D1 Anda. Deploy sekali klik tidak bisa memilih
    lokasi primary. Untuk memindahkannya, buat database dengan
    `wrangler d1 create <nama> --location <hint>` lalu arahkan binding ke sana.
 
@@ -123,7 +122,7 @@ Publik:
 - `/orders/find` — cari pesanan tamu dengan email + nomor pesanan
 - `/sign-in`, `/sign-up`, `/account`, `/account/orders`
 - `/legal/privacy`, `/legal/terms`, `/legal/shipping`, `/legal/refund`
-- `/setup` — bootstrap sekali jalan, dijaga oleh `SETUP_TOKEN`
+- `/setup` — setup sekali jalan. Terbuka sampai selesai, lalu tertutup.
 
 Admin:
 

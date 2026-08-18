@@ -13,7 +13,6 @@ interface __BaseEnv_Env {
 	MAYAR_ENVIRONMENT: "sandbox";
 	SHIPPING_FLAT_RATE: "0";
 	BETTER_AUTH_SECRET: string;
-	SETUP_TOKEN: string;
 	MAYAR_API_KEY: string;
 }
 declare namespace Cloudflare {
@@ -27,7 +26,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "MAYAR_ENVIRONMENT" | "SHIPPING_FLAT_RATE" | "BETTER_AUTH_SECRET" | "SETUP_TOKEN" | "MAYAR_API_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "MAYAR_ENVIRONMENT" | "SHIPPING_FLAT_RATE" | "BETTER_AUTH_SECRET" | "MAYAR_API_KEY">> {}
 }
 
 // Begin runtime types

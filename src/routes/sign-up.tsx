@@ -1,4 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
@@ -9,8 +14,16 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { mergeCart } from "@/lib/cart.functions";
+import { getSetupStatus } from "@/lib/setup.functions";
 
 export const Route = createFileRoute("/sign-up")({
+  beforeLoad: async () => {
+    const { complete } = await getSetupStatus();
+
+    if (!complete) {
+      throw redirect({ to: "/setup" });
+    }
+  },
   component: SignUpPage,
 });
 

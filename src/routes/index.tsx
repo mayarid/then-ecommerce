@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 import { type CatalogProduct, ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,16 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { getProducts } from "@/lib/catalog.functions";
+import { getSetupStatus } from "@/lib/setup.functions";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    const { complete } = await getSetupStatus();
+
+    if (!complete) {
+      throw redirect({ to: "/setup" });
+    }
+  },
   component: Home,
   loader: () => getProducts({ data: {} }),
 });
@@ -94,7 +102,7 @@ function Home() {
             <EmptyHeader>
               <EmptyTitle>The collection is getting ready.</EmptyTitle>
               <EmptyDescription>
-                Run the setup command to load the demo catalog.
+                Add products from the admin area.
               </EmptyDescription>
             </EmptyHeader>
           </Empty>

@@ -7,7 +7,7 @@ TanStack Start, Better Auth, Drizzle ORM, D1, R2, and Mayar V2 payments.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mayarid/then-ecommerce)
 
-Everything the store needs is provisioned for you. Prepare three secrets before
+Everything the store needs is provisioned for you. Prepare two secrets before
 you click: see [Environment variables](#environment-variables).
 
 ## Stack
@@ -25,10 +25,11 @@ you click: see [Environment variables](#environment-variables).
 
 1. Click **Deploy to Cloudflare**. Cloudflare forks the repository and creates
    the D1 database, the R2 bucket, and the rate limiters from `wrangler.jsonc`.
-2. Fill in the three secrets it asks for.
-3. When the deploy finishes, open `https://<your-worker>.workers.dev/setup` and
-   enter your setup token. That page creates your administrator account, adds
-   sample products, and shows the Mayar webhook URL to register.
+2. Fill in the two secrets it asks for.
+3. When the deploy finishes, open `https://<your-worker>.workers.dev`. The
+   home page sends you to `/setup`. That page creates your administrator
+   account, adds sample products, and shows the Mayar webhook URL to
+   register. Sign-in stays closed until this finishes.
 
 ### Local development
 
@@ -42,8 +43,7 @@ bun run setup   # writes .dev.vars, mints secrets, migrates the local D1
 bun dev
 ```
 
-Then open `http://localhost:3000/setup` and use the token that `bun run setup`
-printed.
+Then open `http://localhost:3000`. The home page sends you to `/setup`.
 
 ## Environment variables
 
@@ -54,7 +54,6 @@ provisions them on your account at deploy time.
 | Variable | Required | What it is |
 | --- | --- | --- |
 | `BETTER_AUTH_SECRET` | Yes | Signs session cookies. Generate with `openssl rand -base64 32`. Changing it signs everyone out. |
-| `SETUP_TOKEN` | Yes | Unlocks the one-time `/setup` page. Any long random string. |
 | `MAYAR_API_KEY` | Yes | Mayar API key. Sandbox and production keys differ. |
 | `BETTER_AUTH_URL` | No | Your public URL. Without it, Better Auth reads the origin from each request. |
 | `MAYAR_ENVIRONMENT` | No | `sandbox` (default) or `production`. Set in `wrangler.jsonc`. |
@@ -64,18 +63,20 @@ Keep `MAYAR_ENVIRONMENT=sandbox` until you have completed a test checkout.
 
 ## After the first deploy
 
-A floating **?** button sits in the bottom-left corner of every page while
-setup is unfinished, and opens this same checklist in a sheet. It disappears
-for good once `/setup` completes, so a shopper never sees it. The steps live in
+The home page sends you to `/setup` until the administrator exists. After that,
+the remaining steps live on the admin overview as **Finish your store**. A
+shopper never sees them. The copy lives in
 [`src/lib/setup-guide.ts`](src/lib/setup-guide.ts) — edit that file and this
 section together, or they drift.
 
 1. Complete `/setup`.
-2. Register the Mayar webhook URL that the setup page shows. This is optional;
+2. Register the Mayar webhook URL shown on admin overview. This is optional;
    see [Payment lifecycle](#payment-lifecycle).
 3. Set `BETTER_AUTH_URL` to your public URL. Recommended: without it, the origin
    check trusts whatever host served the request.
-4. Consider where your D1 database lives. A one-click deploy cannot choose the
+4. Replace the sample products.
+5. Switch `MAYAR_ENVIRONMENT` to production after one sandbox checkout works.
+6. Consider where your D1 database lives. A one-click deploy cannot choose the
    primary location. To move it, create a database with
    `wrangler d1 create <name> --location <hint>` and point the binding at it.
 
@@ -117,7 +118,7 @@ Public:
 - `/orders/find` — recover a guest order with email + order number
 - `/sign-in`, `/sign-up`, `/account`, `/account/orders`
 - `/legal/privacy`, `/legal/terms`, `/legal/shipping`, `/legal/refund`
-- `/setup` — one-time bootstrap, guarded by `SETUP_TOKEN`
+- `/setup` — one-time setup. Open until it completes, then closed.
 
 Admin:
 
