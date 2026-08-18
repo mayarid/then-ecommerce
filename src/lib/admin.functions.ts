@@ -247,11 +247,15 @@ export const setProductImage = createServerFn({ method: "POST" })
 
     // Best effort. An orphaned object costs storage; a failed delete must not
     // undo a product update that already succeeded. See ADR-0013.
-    await Promise.allSettled(
-      replaced
-        .filter((image) => image.objectKey !== data.objectKey)
-        .map((image) => env.BUCKET.delete(image.objectKey))
-    );
+    const deletions: Promise<void>[] = [];
+
+    for (const image of replaced) {
+      if (image.objectKey !== data.objectKey) {
+        deletions.push(env.BUCKET.delete(image.objectKey));
+      }
+    }
+
+    await Promise.allSettled(deletions);
 
     return inserted[0];
   });

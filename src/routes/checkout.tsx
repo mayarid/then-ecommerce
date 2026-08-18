@@ -42,9 +42,9 @@ function CheckoutPage() {
     subtotal,
   } = useCartProducts();
   const [submitting, setSubmitting] = useState(false);
-  // One key for this checkout attempt. A failed submit reuses it, so a retry is
-  // recognised as the same checkout rather than a new one. See ADR-0003.
-  const idempotencyKey = useRef(crypto.randomUUID());
+  // One key for this checkout attempt. Created on the first submit so a retry
+  // reuses it. See ADR-0003.
+  const idempotencyKey = useRef<string | null>(null);
   const [error, setError] = useState("");
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -52,6 +52,8 @@ function CheckoutPage() {
     setError("");
     setSubmitting(true);
     const form = new FormData(event.currentTarget);
+    const requestKey = idempotencyKey.current ?? crypto.randomUUID();
+    idempotencyKey.current = requestKey;
 
     try {
       const result = await createOrder({
@@ -68,7 +70,7 @@ function CheckoutPage() {
           postalCode: String(form.get("postalCode") ?? ""),
           province: String(form.get("province") ?? ""),
         },
-        headers: { "Idempotency-Key": idempotencyKey.current },
+        headers: { "Idempotency-Key": requestKey },
       });
 
       const orderStatusPath = `/orders/${result.accessToken}`;
@@ -132,8 +134,7 @@ function CheckoutPage() {
           <EmptyHeader>
             <EmptyTitle>Your bag is empty.</EmptyTitle>
             <EmptyDescription>
-              Lost an order link?{" "}
-              <Link to="/orders/find">Find your order</Link>
+              Lost an order link? <Link to="/orders/find">Find your order</Link>
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>

@@ -9,18 +9,6 @@ export const getSession = createServerFn({ method: "GET" }).handler(() => {
   return getAuth().api.getSession({ headers });
 });
 
-export const ensureSession = createServerFn({ method: "GET" }).handler(
-  async () => {
-    const session = await getSession();
-
-    if (!session) {
-      throw new Error("Unauthorized");
-    }
-
-    return session;
-  }
-);
-
 export const ensureAdmin = createServerFn({ method: "GET" }).handler(
   async () => {
     // The role decides this, so the cookie cache is bypassed. See ADR-0014.

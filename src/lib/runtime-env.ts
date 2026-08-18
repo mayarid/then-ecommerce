@@ -52,11 +52,3 @@ export function getShippingFlatRate() {
     ? shippingRate
     : 0;
 }
-
-/**
- * The public origin. A one-click deploy does not know its own URL until the
- * deploy finishes, so the request origin is the source of truth. See ADR-0014.
- */
-export function getAppUrl(request?: Request) {
-  return request ? new URL(request.url).origin : "http://localhost:3000";
-}

@@ -46,7 +46,7 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
         {imageUrl ? (
           <img
             alt=""
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            className="size-full object-cover"
             loading="lazy"
             src={imageUrl}
           />

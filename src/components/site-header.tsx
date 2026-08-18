@@ -89,8 +89,8 @@ export function SiteHeader() {
             aria-hidden="true"
             className="hidden h-4 w-px bg-border sm:block"
           />
-          <span className="hidden text-[10px] text-muted-foreground uppercase tracking-[0.18em] sm:block">
-            considered goods
+          <span className="hidden text-xs text-muted-foreground sm:block">
+            Considered goods
           </span>
         </div>
 

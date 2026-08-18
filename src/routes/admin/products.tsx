@@ -138,7 +138,7 @@ function AdminProducts() {
                           src={productImageUrl(imageObjectKey) ?? ""}
                         />
                       ) : (
-                        <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground text-[10px]">
+                        <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground text-xs">
                           <ImagePlus aria-hidden="true" className="size-4" />
                           <span>No image</span>
                         </div>

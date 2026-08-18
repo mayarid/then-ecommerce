@@ -126,21 +126,3 @@ export async function releaseOrderReservation(
 
   return reservations.length;
 }
-
-/**
- * Releases every expired reservation without asking the payment provider.
- *
- * The scheduled job must not call this directly, because an order may have been
- * paid while nobody was watching. See ADR-0010.
- */
-export async function releaseExpiredReservations(now = new Date()) {
-  const orderIds = await listExpiredReservationOrderIds(now);
-  let released = 0;
-
-  for (const orderId of orderIds) {
-    // biome-ignore lint/performance/noAwaitInLoops: Each order is its own atomic batch, so one failure cannot take the others down.
-    released += await releaseOrderReservation(orderId, "expired", now);
-  }
-
-  return released;
-}

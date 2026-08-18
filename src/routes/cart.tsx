@@ -49,7 +49,7 @@ function DerivedAmount({
 function CartPage() {
   const { clear, remove, setQuantity } = useCart();
   const { error, items, loading, retry, subtotal } = useCartProducts();
-  const [leaving, setLeaving] = useState<string[]>([]);
+  const [leaving, setLeaving] = useState(() => new Set<string>());
   const [changedByUser, setChangedByUser] = useState(false);
   const exitTimers = useRef<number[]>([]);
 
@@ -85,14 +85,18 @@ function CartPage() {
     }
 
     // A second click inside the exit window must not queue a second timer.
-    if (leaving.includes(productId)) {
+    if (leaving.has(productId)) {
       return;
     }
 
-    setLeaving((current) => [...current, productId]);
+    setLeaving((current) => new Set(current).add(productId));
     afterExit(() => {
       remove(productId);
-      setLeaving((current) => current.filter((id) => id !== productId));
+      setLeaving((current) => {
+        const next = new Set(current);
+        next.delete(productId);
+        return next;
+      });
     });
   }
 
@@ -104,10 +108,10 @@ function CartPage() {
       return;
     }
 
-    setLeaving(items.map(({ product }) => product.id));
+    setLeaving(new Set(items.map(({ product }) => product.id)));
     afterExit(() => {
       clear();
-      setLeaving([]);
+      setLeaving(new Set());
     });
   }
 
@@ -192,8 +196,8 @@ function CartPage() {
       <div className="divide-y divide-border">
         {items.map(({ line, product }) => (
           <div
-            className="flex gap-4 py-6 transition-[opacity,transform] duration-150 ease-in data-leaving:pointer-events-none data-leaving:-translate-y-2 data-leaving:opacity-0 sm:items-center sm:gap-6"
-            data-leaving={leaving.includes(product.id) ? "" : undefined}
+            className="flex gap-4 py-6 transition-[opacity,transform] duration-150 ease-out-quint data-leaving:pointer-events-none data-leaving:-translate-y-2 data-leaving:opacity-0 sm:items-center sm:gap-6"
+            data-leaving={leaving.has(product.id) ? "" : undefined}
             key={product.id}
           >
             <div className="size-24 shrink-0 overflow-hidden rounded-2xl bg-muted sm:size-32">
