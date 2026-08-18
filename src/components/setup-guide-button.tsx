@@ -41,7 +41,7 @@ export function SetupGuideButton() {
                 aria-label="Guide"
                 // Bottom left, because the TanStack devtools own the opposite
                 // corner and both are on screen while a store is set up.
-                className="fixed bottom-5 left-5 z-40 size-11 rounded-full bg-background shadow-lg"
+                className="fixed bottom-5 left-5 z-40"
                 onClick={() => setOpen(true)}
                 size="icon"
                 variant="outline"
@@ -67,7 +67,7 @@ export function SetupGuideButton() {
             </SheetDescription>
           </SheetHeader>
 
-          <ol className="space-y-7 px-6 pb-8">
+          <ol className="flex flex-col gap-7 px-6 pb-8">
             {setupGuideSteps.map((step, index) => (
               <li className="flex gap-4" key={step.title}>
                 <span

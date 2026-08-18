@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { findOrderAccess } from "@/lib/order.functions";
 import { saveLastOrderHint } from "@/lib/order-access";
 
@@ -56,61 +58,52 @@ function FindOrderPage() {
         status link for matching orders.
       </p>
 
-      <form className="mt-10 space-y-5" onSubmit={submit}>
-        <label className="block space-y-2" htmlFor="email">
-          <span className="text-sm">Email address</span>
-          <Input
-            autoComplete="email"
-            id="email"
-            name="email"
-            required
-            type="email"
-          />
-        </label>
-        <label className="block space-y-2" htmlFor="orderNumber">
-          <span className="text-sm">Order number</span>
-          <Input
-            autoComplete="off"
-            id="orderNumber"
-            name="orderNumber"
-            placeholder="THN-20260806123456-ABC123"
-            required
-          />
-        </label>
-
-        {error ? (
-          <p
-            className="rounded-2xl bg-destructive/10 p-4 text-destructive text-sm"
-            role="alert"
-          >
-            {error}
-          </p>
-        ) : null}
-
-        <Button
-          className="h-12 w-full rounded-full"
-          disabled={submitting}
-          type="submit"
-        >
-          {submitting ? (
-            <>
-              <LoaderCircle aria-hidden="true" className="animate-spin" />
-              Looking up order
-            </>
-          ) : (
-            "Open order status"
-          )}
-        </Button>
+      <form className="mt-10" onSubmit={submit}>
+        <FieldGroup>
+          <Field data-invalid={error ? true : undefined}>
+            <FieldLabel htmlFor="email">Email address</FieldLabel>
+            <Input
+              aria-invalid={Boolean(error)}
+              autoComplete="email"
+              id="email"
+              name="email"
+              required
+              type="email"
+            />
+          </Field>
+          <Field data-invalid={error ? true : undefined}>
+            <FieldLabel htmlFor="orderNumber">Order number</FieldLabel>
+            <Input
+              aria-invalid={Boolean(error)}
+              autoComplete="off"
+              id="orderNumber"
+              name="orderNumber"
+              placeholder="THN-20260806123456-ABC123"
+              required
+            />
+          </Field>
+          {error ? (
+            <Alert variant="destructive">
+              <AlertTitle>Unable to find that order</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+          <Button className="w-full" disabled={submitting} type="submit">
+            {submitting ? <Spinner data-icon="inline-start" /> : null}
+            {submitting ? "Looking up order" : "Open order status"}
+          </Button>
+        </FieldGroup>
       </form>
 
       <p className="mt-8 text-muted-foreground text-sm">
         Have an account?{" "}
-        <Link
-          className={buttonVariants({ className: "px-0", variant: "link" })}
-          to="/account/orders"
+        <Button
+          nativeButton={false}
+          render={<Link to="/account/orders" />}
+          variant="link"
         >
           View signed-in order history
-        </Link>
+        </Button>
       </p>
     </main>
   );

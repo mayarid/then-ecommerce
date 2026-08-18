@@ -1,11 +1,22 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 import { useState } from "react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -135,11 +146,11 @@ function AdminOrderDetail() {
           ))}
           {order.status === "pending_payment" ? (
             <Button disabled={busy} onClick={resync} variant="outline">
-              <RefreshCw aria-hidden="true" />
+              <RefreshCw aria-hidden="true" data-icon="inline-start" />
               Resync payment
             </Button>
           ) : null}
-          {order.paymentStatus === "paid" && !confirmingRefund ? (
+          {order.paymentStatus === "paid" ? (
             <Button
               disabled={busy}
               onClick={() => setConfirmingRefund(true)}
@@ -148,50 +159,28 @@ function AdminOrderDetail() {
               Mark refunded
             </Button>
           ) : null}
-          {order.paymentStatus === "paid" && confirmingRefund ? (
-            <div className="flex items-center gap-2 rounded-xl border p-1">
-              <span className="px-2 text-xs text-muted-foreground">
-                Refunded in Mayar?
-              </span>
-              <Button
-                disabled={busy}
-                onClick={markRefunded}
-                size="sm"
-                variant="destructive"
-              >
-                Confirm
-              </Button>
-              <Button
-                disabled={busy}
-                onClick={() => setConfirmingRefund(false)}
-                size="sm"
-                variant="ghost"
-              >
-                Cancel
-              </Button>
-            </div>
-          ) : null}
         </div>
       </div>
 
       {busy ? (
         <p className="mt-4 inline-flex items-center gap-2 text-muted-foreground text-sm">
-          <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
+          <Spinner />
           Updating order
         </p>
       ) : null}
       {error ? (
         <Alert className="mt-4" variant="destructive">
+          <AlertTitle>Unable to update order</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <Card className="rounded-3xl border bg-transparent shadow-none ring-0">
-          <CardHeader className="p-6 pb-0">
+        <Card>
+          <CardHeader>
             <CardTitle>Customer and shipping</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 pt-4">
+          <CardContent>
             <address className="text-muted-foreground text-sm not-italic leading-6">
               {order.guestName}
               <br />
@@ -206,11 +195,11 @@ function AdminOrderDetail() {
             </address>
           </CardContent>
         </Card>
-        <Card className="rounded-3xl border bg-transparent shadow-none ring-0">
-          <CardHeader className="p-6 pb-0">
+        <Card>
+          <CardHeader>
             <CardTitle>Payment</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 pt-4">
+          <CardContent>
             <dl className="grid gap-3 text-sm">
               <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">Status</dt>
@@ -235,11 +224,11 @@ function AdminOrderDetail() {
         </Card>
       </div>
 
-      <Card className="mt-8 rounded-3xl border bg-transparent shadow-none ring-0">
-        <CardHeader className="p-6 pb-0">
+      <Card className="mt-8">
+        <CardHeader>
           <CardTitle>Items</CardTitle>
         </CardHeader>
-        <CardContent className="p-6 pt-4">
+        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
@@ -271,11 +260,11 @@ function AdminOrderDetail() {
         </CardContent>
       </Card>
 
-      <Card className="mt-8 rounded-3xl border bg-transparent shadow-none ring-0">
-        <CardHeader className="p-6 pb-0">
+      <Card className="mt-8">
+        <CardHeader>
           <CardTitle>Payment attempts</CardTitle>
         </CardHeader>
-        <CardContent className="p-6 pt-4">
+        <CardContent>
           {attempts.length > 0 ? (
             <Table>
               <TableHeader>
@@ -307,11 +296,11 @@ function AdminOrderDetail() {
         </CardContent>
       </Card>
 
-      <Card className="mt-8 rounded-3xl border bg-transparent shadow-none ring-0">
-        <CardHeader className="p-6 pb-0">
+      <Card className="mt-8">
+        <CardHeader>
           <CardTitle>Status history</CardTitle>
         </CardHeader>
-        <CardContent className="p-6 pt-4">
+        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
@@ -336,6 +325,36 @@ function AdminOrderDetail() {
           </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog
+        onOpenChange={(next) => {
+          if (!next) {
+            setConfirmingRefund(false);
+          }
+        }}
+        open={confirmingRefund}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark order refunded</AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm only after you complete the refund in Mayar. This cannot
+              be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={markRefunded}
+              variant="destructive"
+            >
+              {busy ? <Spinner data-icon="inline-start" /> : null}
+              Mark order refunded
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

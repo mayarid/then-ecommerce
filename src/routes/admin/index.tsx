@@ -29,25 +29,24 @@ function AdminOverview() {
       </h2>
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {statCards.map(({ icon: Icon, label, value }) => (
-          <Card
-            className="rounded-3xl border bg-transparent p-5 shadow-none ring-0"
-            key={label}
-          >
-            <span className="inline-flex size-9 items-center justify-center rounded-xl bg-muted [&_svg]:size-4">
-              <Icon aria-hidden="true" />
-            </span>
-            <p className="mt-7 text-muted-foreground text-sm">{label}</p>
-            <p className="mt-1 font-medium text-3xl tracking-[-0.04em]">
-              {value}
-            </p>
+          <Card key={label}>
+            <CardHeader>
+              <CardTitle>{label}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="flex items-center gap-2 font-medium text-3xl tracking-[-0.04em]">
+                <Icon aria-hidden="true" />
+                {value}
+              </p>
+            </CardContent>
           </Card>
         ))}
       </div>
-      <Card className="mt-8 rounded-3xl border bg-transparent shadow-none ring-0">
-        <CardHeader className="p-6 pb-0">
+      <Card className="mt-8">
+        <CardHeader>
           <CardTitle>Operational notes</CardTitle>
         </CardHeader>
-        <CardContent className="p-6 pt-4">
+        <CardContent>
           <ul className="grid gap-3 text-muted-foreground text-sm leading-6">
             <li>
               Payment status is confirmed by Mayar webhooks and API resync.

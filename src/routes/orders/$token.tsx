@@ -2,7 +2,9 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Check, Circle, Copy, ExternalLink, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { getSession } from "@/lib/auth.functions";
 import { formatIdr, formatOrderStatus } from "@/lib/format";
 import {
@@ -11,6 +13,7 @@ import {
   refreshOrderPayment,
 } from "@/lib/order.functions";
 import { saveLastOrderHint } from "@/lib/order-access";
+import { cn } from "@/lib/utils";
 
 const statuses = ["paid", "processing", "shipped", "delivered"] as const;
 const paymentRefreshRetryDelays = [5000, 15_000, 30_000, 60_000] as const;
@@ -171,6 +174,7 @@ function OrderStatusPage() {
           <RefreshCw
             aria-hidden="true"
             className={refreshing ? "animate-spin" : undefined}
+            data-icon="inline-start"
           />
           {refreshing ? "Checking payment" : "Refresh status"}
         </Button>
@@ -184,25 +188,30 @@ function OrderStatusPage() {
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Button onClick={copyStatusLink} type="button" variant="outline">
-            <Copy aria-hidden="true" />
+            <Copy aria-hidden="true" data-icon="inline-start" />
             {copied ? "Copied" : "Copy status link"}
           </Button>
-          <Link
-            className={buttonVariants({ variant: "ghost" })}
-            to="/orders/find"
+          <Button
+            nativeButton={false}
+            render={<Link to="/orders/find" />}
+            variant="ghost"
           >
             Find an order
-          </Link>
+          </Button>
         </div>
       </section>
 
       {refreshError ? (
-        <p className="mt-6 text-destructive text-sm" role="alert">
-          {refreshError}
-        </p>
+        <Alert className="mt-6" variant="destructive">
+          <AlertTitle>Unable to refresh payment</AlertTitle>
+          <AlertDescription>{refreshError}</AlertDescription>
+        </Alert>
       ) : null}
       {refreshNote ? (
-        <p className="mt-6 text-muted-foreground text-sm">{refreshNote}</p>
+        <Alert className="mt-6">
+          <AlertTitle>Payment status</AlertTitle>
+          <AlertDescription>{refreshNote}</AlertDescription>
+        </Alert>
       ) : null}
 
       {order.status === "pending_payment" && order.paymentUrl ? (
@@ -215,17 +224,15 @@ function OrderStatusPage() {
             Your items are reserved for 30 minutes. After payment, Mayar returns
             you here. Use Refresh status if the page still shows pending.
           </p>
-          <a
-            className={buttonVariants({
-              className:
-                "mt-6 bg-background text-foreground hover:bg-background/85",
-              variant: "secondary",
-            })}
-            href={order.paymentUrl}
+          <Button
+            className="mt-6"
+            nativeButton={false}
+            render={<a href={order.paymentUrl} />}
+            variant="secondary"
           >
             Continue to payment
-            <ExternalLink aria-hidden="true" />
-          </a>
+            <ExternalLink aria-hidden="true" data-icon="inline-end" />
+          </Button>
         </section>
       ) : null}
 
@@ -237,15 +244,12 @@ function OrderStatusPage() {
             your order history.
           </p>
           {claimError ? (
-            <p className="mt-3 text-destructive text-sm" role="alert">
-              {claimError}
-            </p>
+            <Alert className="mt-3" variant="destructive">
+              <AlertTitle>Unable to claim this order</AlertTitle>
+              <AlertDescription>{claimError}</AlertDescription>
+            </Alert>
           ) : null}
-          <Button
-            className="mt-5 rounded-full"
-            disabled={claiming}
-            onClick={claim}
-          >
+          <Button className="mt-5" disabled={claiming} onClick={claim}>
             {claiming ? "Claiming order" : "Claim order"}
           </Button>
         </section>
@@ -262,9 +266,10 @@ function OrderStatusPage() {
 
             return (
               <li
-                className={`rounded-2xl border p-4 ${
+                className={cn(
+                  "rounded-2xl border p-4",
                   current ? "border-foreground" : "border-border"
-                }`}
+                )}
                 key={status}
               >
                 {complete ? (
@@ -284,16 +289,20 @@ function OrderStatusPage() {
         </ol>
       </section>
 
-      <section className="mt-12 grid gap-8 border-t pt-8 sm:grid-cols-2">
+      <Separator className="mt-12" />
+
+      <section className="grid gap-8 pt-8 sm:grid-cols-2">
         <div>
           <h2 className="font-medium text-sm">Items</h2>
-          <div className="mt-4 space-y-4">
+          <div className="mt-4 flex flex-col gap-4">
             {items.map((item) => (
               <div className="flex justify-between gap-4 text-sm" key={item.id}>
                 <span className="text-muted-foreground">
                   {item.productName} × {item.quantity}
                 </span>
-                <span>{formatIdr(item.lineTotal)}</span>
+                <span className="tabular-nums">
+                  {formatIdr(item.lineTotal)}
+                </span>
               </div>
             ))}
           </div>
@@ -312,9 +321,11 @@ function OrderStatusPage() {
         </div>
       </section>
 
-      <div className="mt-8 flex justify-between border-t pt-6 font-medium text-sm">
+      <Separator className="mt-8" />
+
+      <div className="flex justify-between pt-6 font-medium text-sm">
         <span>Total</span>
-        <span>{formatIdr(order.total)}</span>
+        <span className="tabular-nums">{formatIdr(order.total)}</span>
       </div>
 
       <Link

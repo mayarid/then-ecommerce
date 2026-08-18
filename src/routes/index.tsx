@@ -1,7 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { type CatalogProduct, ProductCard } from "@/components/product-card";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { getProducts } from "@/lib/catalog.functions";
 
 export const Route = createFileRoute("/")({
@@ -27,15 +33,21 @@ function Home() {
             they fit into a life.
           </p>
           <div className="rise-in mt-8 flex flex-wrap gap-3 [--n:3]">
-            <Link className={buttonVariants({ size: "lg" })} to="/products">
+            <Button
+              nativeButton={false}
+              render={<Link to="/products" />}
+              size="lg"
+            >
               Browse the collection
-            </Link>
-            <a
-              className={buttonVariants({ size: "lg", variant: "outline" })}
-              href="#featured"
+            </Button>
+            <Button
+              nativeButton={false}
+              render={<a href="#featured" />}
+              size="lg"
+              variant="outline"
             >
               See what&apos;s new
-            </a>
+            </Button>
           </div>
         </div>
         <div className="rise-in relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-muted [--n:2] md:ml-auto md:w-full md:max-w-sm">
@@ -78,12 +90,14 @@ function Home() {
             ))}
           </div>
         ) : (
-          <div className="rounded-3xl border border-dashed p-10 text-center">
-            <p className="font-medium">The collection is getting ready.</p>
-            <p className="mt-2 text-muted-foreground text-sm">
-              Run the setup command to load the demo catalog.
-            </p>
-          </div>
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>The collection is getting ready.</EmptyTitle>
+              <EmptyDescription>
+                Run the setup command to load the demo catalog.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </section>
     </main>

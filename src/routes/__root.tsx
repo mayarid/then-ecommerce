@@ -29,7 +29,7 @@ export const Route = createRootRoute({
           ? error.message
           : "Check your connection and try again."}
       </p>
-      <Button className="mt-6 rounded-full" onClick={reset} type="button">
+      <Button className="mt-6" onClick={reset} type="button">
         Try again
       </Button>
     </main>

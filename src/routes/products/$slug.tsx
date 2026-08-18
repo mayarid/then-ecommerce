@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group";
 import { getProductBySlug } from "@/lib/catalog.functions";
 import { formatIdr } from "@/lib/format";
 import { productImageUrl } from "@/lib/images";
@@ -76,8 +77,7 @@ function ProductPage() {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <fieldset className="inline-flex h-11 items-center rounded-full border">
-              <legend className="sr-only">Quantity</legend>
+            <ButtonGroup aria-label="Quantity">
               <Button
                 aria-label="Decrease quantity"
                 disabled={quantity <= 1}
@@ -85,13 +85,13 @@ function ProductPage() {
                   setQuantity((current) => Math.max(1, current - 1))
                 }
                 size="icon"
-                variant="ghost"
+                variant="outline"
               >
                 <Minus aria-hidden="true" />
               </Button>
-              <span className="w-8 text-center text-sm tabular-nums">
+              <ButtonGroupText className="min-w-8 justify-center px-2 tabular-nums">
                 {quantity}
-              </span>
+              </ButtonGroupText>
               <Button
                 aria-label="Increase quantity"
                 disabled={quantity >= Math.min(99, product.availableStock)}
@@ -101,21 +101,17 @@ function ProductPage() {
                   )
                 }
                 size="icon"
-                variant="ghost"
+                variant="outline"
               >
                 <Plus aria-hidden="true" />
               </Button>
-            </fieldset>
-            <Button
-              className="h-11 rounded-full px-6"
-              disabled={product.availableStock < 1}
-              onClick={addProduct}
-            >
-              <span className="relative size-4">
+            </ButtonGroup>
+            <Button disabled={product.availableStock < 1} onClick={addProduct}>
+              <span className="relative size-4" data-icon="inline-start">
                 <Plus
                   aria-hidden="true"
                   className={cn(
-                    "absolute inset-0 size-4 transition-[filter,opacity,transform] duration-150 ease-out-strong",
+                    "absolute inset-0 transition-[filter,opacity,transform] duration-150 ease-out-strong",
                     added
                       ? "scale-[0.25] opacity-0 blur-[4px]"
                       : "scale-100 opacity-100 blur-0"
@@ -124,7 +120,7 @@ function ProductPage() {
                 <Check
                   aria-hidden="true"
                   className={cn(
-                    "absolute inset-0 size-4 transition-[filter,opacity,transform] duration-150 ease-out-strong",
+                    "absolute inset-0 transition-[filter,opacity,transform] duration-150 ease-out-strong",
                     added
                       ? "scale-100 opacity-100 blur-0"
                       : "scale-[0.25] opacity-0 blur-[4px]"

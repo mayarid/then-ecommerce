@@ -1,3 +1,6 @@
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+
 export function LegalPage({
   intro,
   sections,
@@ -14,7 +17,8 @@ export function LegalPage({
         {title}
       </h1>
       <p className="mt-6 text-lg text-muted-foreground leading-8">{intro}</p>
-      <div className="mt-12 space-y-9 border-t pt-9">
+      <Separator className="mt-12" />
+      <div className="mt-9 flex flex-col gap-9">
         {sections.map((section) => (
           <section key={section.heading}>
             <h2 className="font-medium text-lg">{section.heading}</h2>
@@ -24,10 +28,13 @@ export function LegalPage({
           </section>
         ))}
       </div>
-      <p className="mt-12 rounded-2xl bg-muted p-4 text-muted-foreground text-xs leading-5">
-        Placeholder policy copy. Replace this text with your merchant&apos;s
-        reviewed policy before launching.
-      </p>
+      <Alert className="mt-12">
+        <AlertTitle>Placeholder policy copy</AlertTitle>
+        <AlertDescription>
+          Replace this text with your merchant&apos;s reviewed policy before
+          launching.
+        </AlertDescription>
+      </Alert>
     </main>
   );
 }

@@ -2,7 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
 import { ClaimableGuestOrders } from "@/components/claimable-guest-orders";
-import { buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { getSession } from "@/lib/auth.functions";
 import { formatIdr, formatOrderStatus } from "@/lib/format";
 import { getClaimableGuestOrders, getMyOrders } from "@/lib/order.functions";
@@ -34,9 +42,13 @@ function AccountOrdersPage() {
         <h1 className="font-heading font-medium text-5xl tracking-[-0.06em]">
           Sign in to see your orders.
         </h1>
-        <Link className={buttonVariants({ className: "mt-8" })} to="/sign-in">
+        <Button
+          className="mt-8"
+          nativeButton={false}
+          render={<Link to="/sign-in" />}
+        >
           Sign in
-        </Link>
+        </Button>
       </main>
     );
   }
@@ -70,10 +82,10 @@ function AccountOrdersPage() {
                 </p>
               </div>
               <div className="flex items-center gap-5 text-sm">
-                <span className="rounded-full bg-muted px-3 py-1">
+                <Badge variant="secondary">
                   {formatOrderStatus(order.status)}
-                </span>
-                <span>{formatIdr(order.total)}</span>
+                </Badge>
+                <span className="tabular-nums">{formatIdr(order.total)}</span>
                 <ChevronRight
                   aria-hidden="true"
                   className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5"
@@ -83,22 +95,23 @@ function AccountOrdersPage() {
           ))}
         </div>
       ) : (
-        <div className="mt-10 rounded-3xl border border-dashed p-10 text-center">
-          <p className="font-medium">No orders yet</p>
-          <p className="mt-2 text-muted-foreground text-sm">
-            {claimableOrders.length > 0
-              ? "Claim a guest order above to move it into this history."
-              : "Your completed orders will appear here."}
-          </p>
+        <Empty className="mt-10">
+          <EmptyHeader>
+            <EmptyTitle>No orders yet</EmptyTitle>
+            <EmptyDescription>
+              {claimableOrders.length > 0
+                ? "Claim a guest order above to move it into this history."
+                : "Your completed orders will appear here."}
+            </EmptyDescription>
+          </EmptyHeader>
           {claimableOrders.length === 0 ? (
-            <Link
-              className={buttonVariants({ className: "mt-6" })}
-              to="/products"
-            >
-              Browse the collection
-            </Link>
+            <EmptyContent>
+              <Button nativeButton={false} render={<Link to="/products" />}>
+                Browse the collection
+              </Button>
+            </EmptyContent>
           ) : null}
-        </div>
+        </Empty>
       )}
     </main>
   );

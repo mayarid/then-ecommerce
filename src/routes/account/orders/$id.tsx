@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { formatIdr, formatOrderStatus } from "@/lib/format";
 import { getMyOrderById } from "@/lib/order.functions";
 
@@ -34,21 +36,23 @@ function AccountOrderDetailPage() {
             Order details
           </h1>
         </div>
-        <span className="rounded-full bg-muted px-3 py-1 text-sm">
-          {formatOrderStatus(order.status)}
-        </span>
+        <Badge variant="secondary">{formatOrderStatus(order.status)}</Badge>
       </div>
 
-      <section className="mt-10 grid gap-8 border-t pt-8 sm:grid-cols-2">
+      <Separator className="mt-10" />
+
+      <section className="grid gap-8 pt-8 sm:grid-cols-2">
         <div>
           <h2 className="font-medium text-sm">Items</h2>
-          <div className="mt-4 space-y-4">
+          <div className="mt-4 flex flex-col gap-4">
             {items.map((item) => (
               <div className="flex justify-between gap-4 text-sm" key={item.id}>
                 <span className="text-muted-foreground">
                   {item.productName} × {item.quantity}
                 </span>
-                <span>{formatIdr(item.lineTotal)}</span>
+                <span className="tabular-nums">
+                  {formatIdr(item.lineTotal)}
+                </span>
               </div>
             ))}
           </div>
@@ -67,24 +71,29 @@ function AccountOrderDetailPage() {
         </div>
       </section>
 
-      <dl className="mt-8 grid gap-3 border-t pt-6 text-sm">
+      <Separator className="mt-8" />
+
+      <dl className="grid gap-3 pt-6 text-sm">
         <div className="flex justify-between gap-4">
           <dt className="text-muted-foreground">Payment</dt>
           <dd>{formatOrderStatus(order.paymentStatus)}</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-muted-foreground">Subtotal</dt>
-          <dd>{formatIdr(order.subtotal)}</dd>
+          <dd className="tabular-nums">{formatIdr(order.subtotal)}</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-muted-foreground">Shipping</dt>
-          <dd>{formatIdr(order.shippingAmount)}</dd>
-        </div>
-        <div className="flex justify-between gap-4 border-t pt-4 font-medium">
-          <dt>Total</dt>
-          <dd>{formatIdr(order.total)}</dd>
+          <dd className="tabular-nums">{formatIdr(order.shippingAmount)}</dd>
         </div>
       </dl>
+
+      <Separator className="mt-4" />
+
+      <div className="flex justify-between gap-4 pt-4 font-medium text-sm">
+        <span>Total</span>
+        <span className="tabular-nums">{formatIdr(order.total)}</span>
+      </div>
     </main>
   );
 }

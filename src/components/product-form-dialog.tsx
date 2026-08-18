@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { ImagePlus, LoaderCircle } from "lucide-react";
+import { ImagePlus } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,12 +13,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createProduct,
@@ -88,6 +94,7 @@ function ProductFormFields({
   imageObjectKey,
   onImageFileChange,
   product,
+  submitError,
 }: {
   categories: ProductFormCategory[];
   idPrefix: string;
@@ -95,10 +102,12 @@ function ProductFormFields({
   imageObjectKey?: string | null;
   onImageFileChange: (file: File | null) => void;
   product?: EditableProduct;
+  submitError: string;
 }) {
   // Remounting the file input is the only way to clear its own selection.
   const [inputKey, setInputKey] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const invalid = Boolean(submitError);
 
   useEffect(() => {
     if (!imageFile) {
@@ -122,19 +131,21 @@ function ProductFormFields({
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <Field>
+    <FieldGroup className="sm:grid sm:grid-cols-2">
+      <Field data-invalid={invalid ? true : undefined}>
         <FieldLabel htmlFor={`${idPrefix}-name`}>Name</FieldLabel>
         <Input
+          aria-invalid={invalid}
           defaultValue={product?.name}
           id={`${idPrefix}-name`}
           name="name"
           required
         />
       </Field>
-      <Field>
+      <Field data-invalid={invalid ? true : undefined}>
         <FieldLabel htmlFor={`${idPrefix}-slug`}>Slug</FieldLabel>
         <Input
+          aria-invalid={invalid}
           defaultValue={product?.slug}
           id={`${idPrefix}-slug`}
           name="slug"
@@ -142,9 +153,10 @@ function ProductFormFields({
           required
         />
       </Field>
-      <Field>
+      <Field data-invalid={invalid ? true : undefined}>
         <FieldLabel htmlFor={`${idPrefix}-price`}>Price in IDR</FieldLabel>
         <Input
+          aria-invalid={invalid}
           defaultValue={product?.price}
           id={`${idPrefix}-price`}
           min={0}
@@ -153,9 +165,10 @@ function ProductFormFields({
           type="number"
         />
       </Field>
-      <Field>
+      <Field data-invalid={invalid ? true : undefined}>
         <FieldLabel htmlFor={`${idPrefix}-stock`}>Available stock</FieldLabel>
         <Input
+          aria-invalid={invalid}
           defaultValue={product?.availableStock}
           id={`${idPrefix}-stock`}
           min={0}
@@ -164,9 +177,10 @@ function ProductFormFields({
           type="number"
         />
       </Field>
-      <Field>
+      <Field data-invalid={invalid ? true : undefined}>
         <FieldLabel htmlFor={`${idPrefix}-category`}>Category</FieldLabel>
         <NativeSelect
+          aria-invalid={invalid}
           className="w-full"
           defaultValue={product?.categoryId ?? ""}
           id={`${idPrefix}-category`}
@@ -194,23 +208,30 @@ function ProductFormFields({
           </FieldDescription>
         ) : null}
       </Field>
-      <Field className="sm:col-span-2">
+      <Field
+        className="sm:col-span-2"
+        data-invalid={invalid ? true : undefined}
+      >
         <FieldLabel htmlFor={`${idPrefix}-description`}>Description</FieldLabel>
         <Textarea
+          aria-invalid={invalid}
           defaultValue={product?.description}
           id={`${idPrefix}-description`}
           name="description"
           required
         />
       </Field>
-      <Field className="sm:col-span-2">
+      <Field
+        className="sm:col-span-2"
+        data-invalid={invalid ? true : undefined}
+      >
         <FieldLabel htmlFor={`${idPrefix}-image`}>
           Product image{" "}
           <span className="text-muted-foreground">(optional)</span>
         </FieldLabel>
-        <input
+        <Input
           accept="image/*"
-          className="block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-muted file:px-3 file:py-1.5 file:font-medium file:text-foreground"
+          aria-invalid={invalid}
           id={`${idPrefix}-image`}
           key={inputKey}
           name="image"
@@ -263,7 +284,7 @@ function ProductFormFields({
           One image, up to 4 MB. It is saved when you save the product.
         </FieldDescription>
       </Field>
-    </div>
+    </FieldGroup>
   );
 }
 
@@ -404,6 +425,7 @@ function CreateProductBody({
           </div>
           {error ? (
             <Alert className="mt-4" variant="destructive">
+              <AlertTitle>Unable to upload the image</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
@@ -416,9 +438,11 @@ function CreateProductBody({
               idPrefix="new-product"
               imageFile={imageFile}
               onImageFileChange={setImageFile}
+              submitError={error}
             />
             {error ? (
               <Alert className="mt-4" variant="destructive">
+                <AlertTitle>Unable to save product</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             ) : null}
@@ -430,20 +454,9 @@ function CreateProductBody({
         {savedProduct ? (
           <>
             <DialogClose render={<Button variant="ghost" />}>Done</DialogClose>
-            <Button
-              className="rounded-full"
-              disabled={submitting}
-              onClick={retryImage}
-              type="button"
-            >
-              {submitting ? (
-                <>
-                  <LoaderCircle aria-hidden="true" className="animate-spin" />
-                  Uploading image
-                </>
-              ) : (
-                "Retry image upload"
-              )}
+            <Button disabled={submitting} onClick={retryImage} type="button">
+              {submitting ? <Spinner data-icon="inline-start" /> : null}
+              {submitting ? "Uploading image" : "Retry image upload"}
             </Button>
           </>
         ) : (
@@ -452,19 +465,12 @@ function CreateProductBody({
               Cancel
             </DialogClose>
             <Button
-              className="rounded-full"
               disabled={submitting}
               form="create-product-form"
               type="submit"
             >
-              {submitting ? (
-                <>
-                  <LoaderCircle aria-hidden="true" className="animate-spin" />
-                  Saving product
-                </>
-              ) : (
-                "Save product"
-              )}
+              {submitting ? <Spinner data-icon="inline-start" /> : null}
+              {submitting ? "Saving product" : "Save product"}
             </Button>
           </>
         )}
@@ -569,9 +575,11 @@ function EditProductBody({
             imageObjectKey={imageObjectKey}
             onImageFileChange={setImageFile}
             product={product}
+            submitError={error}
           />
           {error ? (
             <Alert className="mt-4" variant="destructive">
+              <AlertTitle>Unable to save product</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
@@ -580,20 +588,9 @@ function EditProductBody({
 
       <DialogFooter>
         <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
-        <Button
-          className="rounded-full"
-          disabled={submitting}
-          form="edit-product-form"
-          type="submit"
-        >
-          {submitting ? (
-            <>
-              <LoaderCircle aria-hidden="true" className="animate-spin" />
-              Saving changes
-            </>
-          ) : (
-            "Save changes"
-          )}
+        <Button disabled={submitting} form="edit-product-form" type="submit">
+          {submitting ? <Spinner data-icon="inline-start" /> : null}
+          {submitting ? "Saving changes" : "Save changes"}
         </Button>
       </DialogFooter>
     </>

@@ -3,6 +3,7 @@ import { Check, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatIdr } from "@/lib/format";
 import { productImageUrl } from "@/lib/images";
@@ -21,7 +22,7 @@ export type CatalogProduct = {
 };
 
 const productCardIconClass =
-  "absolute inset-0 size-4 transition-[filter,opacity,transform] duration-150 ease-out-strong";
+  "absolute inset-0 transition-[filter,opacity,transform] duration-150 ease-out-strong";
 
 export function ProductCard({ product }: { product: CatalogProduct }) {
   const { add } = useCart();
@@ -54,8 +55,10 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
             No image
           </div>
         )}
-        <span className="absolute top-4 left-4 rounded-full bg-background/85 px-3 py-1 text-muted-foreground text-xs backdrop-blur">
-          {product.categoryName ?? "Collection"}
+        <span className="absolute top-4 left-4">
+          <Badge variant="secondary">
+            {product.categoryName ?? "Collection"}
+          </Badge>
         </span>
       </Link>
 
@@ -75,7 +78,7 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
         </div>
         <Button
           aria-label={`Add ${product.name} to cart`}
-          className="mt-0.5 size-10 rounded-full"
+          className="mt-0.5"
           disabled={product.availableStock < 1}
           onClick={addToCart}
           size="icon"

@@ -1,9 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { CircleAlert, Minus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCartProducts } from "@/hooks/use-cart-products";
 import { formatIdr } from "@/lib/format";
 import { productImageUrl } from "@/lib/images";
@@ -102,15 +113,16 @@ function CartPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-3xl px-5 pt-20 pb-32 text-center sm:px-8">
-        <h1 className="font-heading font-medium text-4xl tracking-[-0.05em]">
-          Could not load your bag.
-        </h1>
-        <p className="mt-4 text-muted-foreground text-sm">{error}</p>
-        <p className="mt-2 text-muted-foreground text-sm">
-          Your items are still saved on this device.
-        </p>
-        <Button className="mt-8 rounded-full" onClick={retry} type="button">
+      <main className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-5 pt-20 pb-32 sm:px-8">
+        <Alert variant="destructive">
+          <CircleAlert aria-hidden="true" />
+          <AlertTitle>Could not load your bag.</AlertTitle>
+          <AlertDescription>
+            <p>{error}</p>
+            <p>Your items are still saved on this device.</p>
+          </AlertDescription>
+        </Alert>
+        <Button onClick={retry} type="button">
           Try again
         </Button>
       </main>
@@ -119,32 +131,52 @@ function CartPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-3xl px-5 pt-20 pb-32 text-center sm:px-8">
-        <p className="text-muted-foreground text-sm">Loading your bag</p>
+      <main className="mx-auto max-w-5xl px-5 pt-14 pb-20 sm:px-8">
+        <div className="flex flex-col gap-3 pb-8">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-12 w-64 max-w-full" />
+        </div>
+        <Separator />
+        <div className="flex flex-col">
+          {["line-1", "line-2"].map((placeholder) => (
+            <div className="flex gap-4 py-6" key={placeholder}>
+              <Skeleton className="size-24 shrink-0 sm:size-32" />
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <Skeleton className="h-5 w-40 max-w-full" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-7 w-28" />
+              </div>
+              <Skeleton className="h-5 w-16" />
+            </div>
+          ))}
+        </div>
       </main>
     );
   }
 
   if (items.length === 0) {
     return (
-      <main className="mx-auto max-w-3xl px-5 pt-20 pb-32 text-center sm:px-8">
-        <p className="text-muted-foreground text-sm">Your bag</p>
-        <h1 className="mt-3 font-heading font-medium text-5xl tracking-[-0.06em]">
-          Nothing here yet.
-        </h1>
-        <p className="mx-auto mt-5 max-w-md text-muted-foreground">
-          Find something useful for the everyday and it will show up here.
-        </p>
-        <Link className={buttonVariants({ className: "mt-8" })} to="/products">
-          Browse the collection
-        </Link>
+      <main className="mx-auto max-w-3xl px-5 pt-20 pb-32 sm:px-8">
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>Nothing here yet.</EmptyTitle>
+            <EmptyDescription>
+              Find something useful for the everyday and it will show up here.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button nativeButton={false} render={<Link to="/products" />}>
+              Browse the collection
+            </Button>
+          </EmptyContent>
+        </Empty>
       </main>
     );
   }
 
   return (
     <main className="mx-auto max-w-5xl px-5 pt-14 pb-20 sm:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-5 border-b pb-8">
+      <div className="flex flex-wrap items-end justify-between gap-5 pb-8">
         <div>
           <p className="text-muted-foreground text-sm">Your bag</p>
           <h1 className="mt-3 font-heading font-medium text-5xl tracking-[-0.06em]">
@@ -155,6 +187,7 @@ function CartPage() {
           Clear bag
         </Button>
       </div>
+      <Separator />
 
       <div className="divide-y divide-border">
         {items.map(({ line, product }) => (
@@ -183,7 +216,10 @@ function CartPage() {
               <p className="mt-1 text-muted-foreground text-sm">
                 {formatIdr(product.price)}
               </p>
-              <div className="mt-3 flex items-center gap-2">
+              <ButtonGroup
+                aria-label={`${product.name} quantity`}
+                className="mt-3"
+              >
                 <Button
                   aria-label={`Decrease ${product.name} quantity`}
                   disabled={line.quantity <= 1}
@@ -193,9 +229,9 @@ function CartPage() {
                 >
                   <Minus aria-hidden="true" />
                 </Button>
-                <span className="w-6 text-center text-sm tabular-nums">
+                <ButtonGroupText className="min-w-6 justify-center px-2 tabular-nums">
                   {line.quantity}
-                </span>
+                </ButtonGroupText>
                 <Button
                   aria-label={`Increase ${product.name} quantity`}
                   disabled={line.quantity >= product.availableStock}
@@ -205,7 +241,7 @@ function CartPage() {
                 >
                   <Plus aria-hidden="true" />
                 </Button>
-              </div>
+              </ButtonGroup>
             </div>
             <div className="flex flex-col items-end gap-3">
               <DerivedAmount
@@ -226,8 +262,9 @@ function CartPage() {
         ))}
       </div>
 
-      <div className="mt-8 ml-auto max-w-sm border-t pt-6">
-        <div className="flex items-center justify-between text-sm">
+      <div className="mt-8 ml-auto flex max-w-sm flex-col gap-3">
+        <Separator />
+        <div className="flex items-center justify-between pt-3 text-sm">
           <span className="text-muted-foreground">Subtotal</span>
           <DerivedAmount
             animate={changedByUser}
@@ -235,15 +272,16 @@ function CartPage() {
             value={formatIdr(subtotal)}
           />
         </div>
-        <p className="mt-3 text-muted-foreground text-xs leading-5">
+        <p className="text-muted-foreground text-xs leading-5">
           Flat-rate shipping is calculated at checkout.
         </p>
-        <Link
-          className={buttonVariants({ className: "mt-6 w-full" })}
-          to="/checkout"
+        <Button
+          className="w-full"
+          nativeButton={false}
+          render={<Link to="/checkout" />}
         >
           Continue to checkout
-        </Link>
+        </Button>
       </div>
     </main>
   );

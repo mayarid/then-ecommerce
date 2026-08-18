@@ -1,7 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
 import { ClaimableGuestOrders } from "@/components/claimable-guest-orders";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { getSession } from "@/lib/auth.functions";
 import { authClient } from "@/lib/auth-client";
 import { getClaimableGuestOrders } from "@/lib/order.functions";
@@ -33,15 +39,16 @@ function AccountPage() {
           Sign in to see your order history, or check out as a guest.
         </p>
         <div className="mt-8 flex justify-center gap-3">
-          <Link className={buttonVariants()} to="/sign-in">
+          <Button nativeButton={false} render={<Link to="/sign-in" />}>
             Sign in
-          </Link>
-          <Link
-            className={buttonVariants({ variant: "outline" })}
-            to="/sign-up"
+          </Button>
+          <Button
+            nativeButton={false}
+            render={<Link to="/sign-up" />}
+            variant="outline"
           >
             Create account
-          </Link>
+          </Button>
         </div>
       </main>
     );
@@ -61,21 +68,22 @@ function AccountPage() {
       ) : null}
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
-        <Link
-          className="rounded-3xl border p-6 transition-colors hover:bg-muted"
-          to="/account/orders"
-        >
-          <p className="font-medium">Order history</p>
-          <p className="mt-2 text-muted-foreground text-sm leading-6">
-            See your recent orders and their current progress.
-          </p>
+        <Link className="block" to="/account/orders">
+          <Card>
+            <CardHeader>
+              <CardTitle>Order history</CardTitle>
+              <CardDescription>
+                See your recent orders and their current progress.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         </Link>
-        <div className="rounded-3xl border p-6">
-          <p className="font-medium">Account details</p>
-          <p className="mt-2 text-muted-foreground text-sm leading-6">
-            {session.user.email}
-          </p>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Account details</CardTitle>
+            <CardDescription>{session.user.email}</CardDescription>
+          </CardHeader>
+        </Card>
       </div>
       <Button
         className="mt-8"

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ShoppingCart, Webhook } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import {
   Empty,
   EmptyDescription,
   EmptyHeader,
+  EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
 import {
@@ -80,6 +81,9 @@ function AdminOrders() {
       ) : (
         <Empty className="mt-8 min-h-48">
           <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ShoppingCart aria-hidden="true" />
+            </EmptyMedia>
             <EmptyTitle>No orders yet</EmptyTitle>
             <EmptyDescription>
               Orders will appear here after customers check out.
@@ -87,11 +91,11 @@ function AdminOrders() {
           </EmptyHeader>
         </Empty>
       )}
-      <Card className="mt-12 rounded-3xl border bg-transparent shadow-none ring-0">
-        <CardHeader className="p-6 pb-0">
+      <Card className="mt-12">
+        <CardHeader>
           <CardTitle>Webhook audit</CardTitle>
         </CardHeader>
-        <CardContent className="p-6 pt-4">
+        <CardContent>
           {events.length > 0 ? (
             <Table>
               <TableHeader>
@@ -120,9 +124,17 @@ function AdminOrders() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-muted-foreground text-sm">
-              Mayar webhook events will appear here after setup.
-            </p>
+            <Empty className="min-h-0 flex-none p-6">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Webhook aria-hidden="true" />
+                </EmptyMedia>
+                <EmptyTitle>No webhook events</EmptyTitle>
+                <EmptyDescription>
+                  Mayar webhook events will appear here after setup.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           )}
         </CardContent>
       </Card>

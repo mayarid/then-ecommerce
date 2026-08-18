@@ -5,7 +5,19 @@ import { z } from "zod";
 
 import { type CatalogProduct, ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { getCategories, getProducts } from "@/lib/catalog.functions";
 
 const searchSchema = z.object({
@@ -62,27 +74,31 @@ function ProductsPage() {
           </p>
         </div>
         <search className="w-full max-w-sm">
-          <form className="flex items-center gap-2" onSubmit={submitSearch}>
+          <form onSubmit={submitSearch}>
             <label className="sr-only" htmlFor="product-search">
               Search products
             </label>
-            <Input
-              id="product-search"
-              onChange={(event) => setValue(event.target.value)}
-              placeholder="Search products"
-              type="search"
-              value={value}
-            />
-            <Button aria-label="Search products" size="icon-lg" type="submit">
-              <Search aria-hidden="true" />
-            </Button>
+            <InputGroup>
+              <InputGroupInput
+                id="product-search"
+                onChange={(event) => setValue(event.target.value)}
+                placeholder="Search products"
+                type="search"
+                value={value}
+              />
+              <InputGroupAddon>
+                <InputGroupButton aria-label="Search products" type="submit">
+                  <Search data-icon="inline-start" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
           </form>
         </search>
       </div>
 
-      <div className="flex flex-wrap gap-2 py-7">
+      <div className="flex flex-wrap gap-x-4 gap-y-2 py-7">
         <Link
-          className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-muted [&.active]:bg-foreground [&.active]:text-background"
+          className="text-muted-foreground text-sm transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:underline [&.active]:underline-offset-4"
           search={{}}
           to="/products"
         >
@@ -90,7 +106,7 @@ function ProductsPage() {
         </Link>
         {categories.map((category) => (
           <Link
-            className="rounded-full border px-4 py-2 text-sm transition-colors hover:bg-muted [&.active]:bg-foreground [&.active]:text-background"
+            className="text-muted-foreground text-sm transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:underline [&.active]:underline-offset-4"
             key={category.id}
             search={{ category: category.slug }}
             to="/products"
@@ -107,19 +123,22 @@ function ProductsPage() {
           ))}
         </div>
       ) : (
-        <div className="rounded-3xl border border-dashed p-14 text-center">
-          <h2 className="font-medium">No products found</h2>
-          <p className="mt-2 text-muted-foreground text-sm">
-            Try another search or clear the current filter.
-          </p>
-          <Link
-            className="mt-6 inline-flex text-sm underline-offset-4 hover:underline"
-            search={{}}
-            to="/products"
-          >
-            Clear filters
-          </Link>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No products found</EmptyTitle>
+            <EmptyDescription>
+              Try another search or clear the current filter.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              nativeButton={false}
+              render={<Link search={{}} to="/products" />}
+            >
+              Clear filters
+            </Button>
+          </EmptyContent>
+        </Empty>
       )}
     </main>
   );

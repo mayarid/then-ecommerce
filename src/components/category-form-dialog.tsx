@@ -1,7 +1,7 @@
-import { LoaderCircle, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,8 +12,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { createCategory, updateCategory } from "@/lib/admin.functions";
 
@@ -47,24 +53,30 @@ function messageFrom(error: unknown, fallback: string) {
 function CategoryFormFields({
   category,
   idPrefix,
+  submitError,
 }: {
   category?: EditableCategory;
   idPrefix: string;
+  submitError: string;
 }) {
+  const invalid = Boolean(submitError);
+
   return (
-    <div className="grid gap-4">
-      <Field>
+    <FieldGroup>
+      <Field data-invalid={invalid ? true : undefined}>
         <FieldLabel htmlFor={`${idPrefix}-name`}>Name</FieldLabel>
         <Input
+          aria-invalid={invalid}
           defaultValue={category?.name}
           id={`${idPrefix}-name`}
           name="name"
           required
         />
       </Field>
-      <Field>
+      <Field data-invalid={invalid ? true : undefined}>
         <FieldLabel htmlFor={`${idPrefix}-slug`}>Slug</FieldLabel>
         <Input
+          aria-invalid={invalid}
           defaultValue={category?.slug}
           id={`${idPrefix}-slug`}
           name="slug"
@@ -89,17 +101,18 @@ function CategoryFormFields({
           </FieldDescription>
         )}
       </Field>
-      <Field>
+      <Field data-invalid={invalid ? true : undefined}>
         <FieldLabel htmlFor={`${idPrefix}-description`}>
           Description <span className="text-muted-foreground">(optional)</span>
         </FieldLabel>
         <Textarea
+          aria-invalid={invalid}
           defaultValue={category?.description ?? ""}
           id={`${idPrefix}-description`}
           name="description"
         />
       </Field>
-    </div>
+    </FieldGroup>
   );
 }
 
@@ -194,9 +207,14 @@ function CategoryDialogBody({
 
       <form className="contents" id={formId} onSubmit={submit}>
         <div className="-mx-6 overflow-y-auto px-6">
-          <CategoryFormFields category={category} idPrefix={formId} />
+          <CategoryFormFields
+            category={category}
+            idPrefix={formId}
+            submitError={error}
+          />
           {error ? (
             <Alert className="mt-4" variant="destructive">
+              <AlertTitle>Unable to save category</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
@@ -205,20 +223,9 @@ function CategoryDialogBody({
 
       <DialogFooter>
         <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
-        <Button
-          className="rounded-full"
-          disabled={submitting}
-          form={formId}
-          type="submit"
-        >
-          {submitting ? (
-            <>
-              <LoaderCircle aria-hidden="true" className="animate-spin" />
-              Saving
-            </>
-          ) : (
-            "Save category"
-          )}
+        <Button disabled={submitting} form={formId} type="submit">
+          {submitting ? <Spinner data-icon="inline-start" /> : null}
+          {submitting ? "Saving" : "Save category"}
         </Button>
       </DialogFooter>
     </>

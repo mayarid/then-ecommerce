@@ -3,6 +3,8 @@ import { ArrowUpRight, Menu, ShoppingBag, UserRound } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { useCart } from "@/components/cart-provider";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -144,25 +146,24 @@ export function SiteHeader() {
           <Sheet onOpenChange={setMobileMenuOpen} open={mobileMenuOpen}>
             <SheetTrigger
               aria-label="Open navigation menu"
-              className="inline-flex size-11 items-center justify-center rounded-full border border-border transition-[background-color,color,transform] duration-150 ease-out-quint hover:bg-muted active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:hidden"
+              nativeButton={false}
+              render={
+                <Button className="lg:hidden" size="icon" variant="outline" />
+              }
             >
-              <Menu aria-hidden="true" className="size-4" />
+              <Menu aria-hidden="true" />
             </SheetTrigger>
-            <SheetContent
-              className="w-full max-w-sm gap-0 bg-background p-0"
-              side="right"
-            >
-              <SheetHeader className="border-border/70 border-b px-5 pt-6 pb-5 text-left">
-                <SheetTitle className="text-left text-lg">Menu</SheetTitle>
-                <SheetDescription className="text-left">
-                  Find your way around then.
-                </SheetDescription>
+            <SheetContent className="w-full max-w-sm gap-0 p-0" side="right">
+              <SheetHeader className="px-5 pt-6 pb-5">
+                <SheetTitle>Menu</SheetTitle>
+                <SheetDescription>Find your way around then.</SheetDescription>
               </SheetHeader>
+              <Separator />
               <div className="flex min-h-[calc(100dvh-6.5rem)] flex-col px-5 py-6">
                 <nav aria-label="Mobile navigation" className="flex flex-col">
                   {primaryNavItems.map((item) => (
                     <Link
-                      className="group flex min-h-14 items-center justify-between border-border/70 border-b font-heading text-2xl tracking-[-0.04em] transition-[color,transform] duration-150 ease-out-quint first:border-t hover:text-muted-foreground active:scale-[0.96] [&.active]:text-muted-foreground"
+                      className="group flex min-h-14 items-center justify-between border-border/70 border-b font-heading text-2xl tracking-[-0.04em] transition-[color,transform] duration-150 ease-out-quint hover:text-muted-foreground active:scale-[0.96] [&.active]:text-muted-foreground"
                       key={item.to}
                       onClick={() => setMobileMenuOpen(false)}
                       to={item.to}
@@ -177,36 +178,39 @@ export function SiteHeader() {
                 </nav>
 
                 <div className="mt-8 grid gap-2">
-                  <Link
-                    className="flex min-h-12 items-center justify-between rounded-full bg-foreground px-5 text-background text-sm transition-[background-color,transform] duration-150 ease-out-quint hover:bg-foreground/80 active:scale-[0.96]"
+                  <Button
+                    className="w-full justify-between"
+                    nativeButton={false}
                     onClick={() => setMobileMenuOpen(false)}
-                    to="/account"
+                    render={<Link to="/account" />}
                   >
                     Account
-                    <UserRound aria-hidden="true" className="size-4" />
-                  </Link>
-                  <Link
-                    className="flex min-h-12 items-center justify-between rounded-full border border-border px-5 text-sm transition-[background-color,transform] duration-150 ease-out-quint hover:bg-muted active:scale-[0.96]"
+                    <UserRound aria-hidden="true" data-icon="inline-end" />
+                  </Button>
+                  <Button
+                    className="w-full justify-between"
+                    nativeButton={false}
                     onClick={() => setMobileMenuOpen(false)}
-                    to="/cart"
+                    render={<Link to="/cart" />}
+                    variant="outline"
                   >
                     Cart
-                    <span className="flex items-center gap-2">
-                      <span className="text-muted-foreground tabular-nums">
-                        {count} {count === 1 ? "item" : "items"}
-                      </span>
-                      <ShoppingBag aria-hidden="true" className="size-4" />
+                    <span className="text-muted-foreground tabular-nums">
+                      {count} {count === 1 ? "item" : "items"}
                     </span>
-                  </Link>
+                    <ShoppingBag aria-hidden="true" data-icon="inline-end" />
+                  </Button>
                   {lastOrder ? (
-                    <a
-                      className="flex min-h-12 items-center justify-between rounded-full border border-border px-5 text-sm transition-[background-color,transform] duration-150 ease-out-quint hover:bg-muted active:scale-[0.96]"
-                      href={lastOrder.orderStatusPath}
+                    <Button
+                      className="w-full justify-between"
+                      nativeButton={false}
                       onClick={() => setMobileMenuOpen(false)}
+                      render={<a href={lastOrder.orderStatusPath} />}
+                      variant="outline"
                     >
                       Continue order
-                      <ArrowUpRight aria-hidden="true" className="size-4" />
-                    </a>
+                      <ArrowUpRight aria-hidden="true" data-icon="inline-end" />
+                    </Button>
                   ) : null}
                 </div>
 

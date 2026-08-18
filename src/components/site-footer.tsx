@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
 
+import { Separator } from "@/components/ui/separator";
+
 const footerLinkGroups = [
   {
     label: "Explore",
@@ -79,7 +81,8 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        <div className="mt-16 flex flex-col gap-4 border-background/15 border-t py-5 text-background/45 text-xs sm:flex-row sm:items-center sm:justify-between">
+        <Separator className="mt-16" />
+        <div className="flex flex-col gap-4 py-5 text-background/45 text-xs sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} then. All rights reserved.</p>
           <p>Made for everyday living.</p>
         </div>

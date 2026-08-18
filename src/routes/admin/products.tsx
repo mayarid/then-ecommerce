@@ -105,12 +105,8 @@ function AdminProducts() {
             Products
           </h2>
         </div>
-        <Button
-          className="rounded-full"
-          onClick={() => openDialog("new")}
-          type="button"
-        >
-          <Plus aria-hidden="true" />
+        <Button onClick={() => openDialog("new")} type="button">
+          <Plus aria-hidden="true" data-icon="inline-start" />
           Add product
         </Button>
       </div>
@@ -210,12 +206,8 @@ function AdminProducts() {
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              className="rounded-full"
-              onClick={() => openDialog("new")}
-              type="button"
-            >
-              <Plus aria-hidden="true" />
+            <Button onClick={() => openDialog("new")} type="button">
+              <Plus aria-hidden="true" data-icon="inline-start" />
               Add product
             </Button>
           </EmptyContent>

@@ -1,10 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { useCartProducts } from "@/hooks/use-cart-products";
 import { formatIdr } from "@/lib/format";
 import { createOrder } from "@/lib/order.functions";
@@ -79,11 +97,14 @@ function CheckoutPage() {
         <h1 className="font-heading font-medium text-4xl tracking-[-0.05em]">
           Could not load your bag.
         </h1>
-        <p className="mt-4 text-muted-foreground text-sm">{cartError}</p>
-        <p className="mt-2 text-muted-foreground text-sm">
+        <Alert className="mt-6" variant="destructive">
+          <AlertTitle>Unable to load your bag</AlertTitle>
+          <AlertDescription>{cartError}</AlertDescription>
+        </Alert>
+        <p className="mt-4 text-muted-foreground text-sm">
           Your items are still saved on this device.
         </p>
-        <Button className="mt-8 rounded-full" onClick={retry} type="button">
+        <Button className="mt-8" onClick={retry} type="button">
           Try again
         </Button>
       </main>
@@ -92,30 +113,35 @@ function CheckoutPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-2xl px-5 pt-20 pb-32 text-center sm:px-8">
-        <p className="text-muted-foreground text-sm">Loading your bag</p>
+      <main className="mx-auto max-w-2xl px-5 pt-20 pb-32 sm:px-8">
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-10 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="mt-4 h-24 w-full" />
+        </div>
       </main>
     );
   }
 
   if (items.length === 0) {
     return (
-      <main className="mx-auto max-w-2xl px-5 pt-20 pb-32 text-center sm:px-8">
-        <h1 className="font-heading font-medium text-5xl tracking-[-0.06em]">
-          Your bag is empty.
-        </h1>
-        <Link className={buttonVariants({ className: "mt-8" })} to="/products">
-          Browse the collection
-        </Link>
-        <p className="mt-6 text-muted-foreground text-sm">
-          Lost an order link?{" "}
-          <Link
-            className="underline-offset-4 hover:underline"
-            to="/orders/find"
-          >
-            Find your order
-          </Link>
-        </p>
+      <main className="mx-auto max-w-2xl px-5 pt-20 pb-32 sm:px-8">
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>Your bag is empty.</EmptyTitle>
+            <EmptyDescription>
+              Lost an order link?{" "}
+              <Link to="/orders/find">Find your order</Link>
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button nativeButton={false} render={<Link to="/products" />}>
+              Browse the collection
+            </Button>
+          </EmptyContent>
+        </Empty>
       </main>
     );
   }
@@ -135,105 +161,117 @@ function CheckoutPage() {
           <h1 className="mt-3 font-heading font-medium text-5xl tracking-[-0.06em]">
             Where should we send it?
           </h1>
-          <form className="mt-10 space-y-8" onSubmit={submit}>
-            <section aria-labelledby="contact-heading">
-              <h2 className="font-medium text-sm" id="contact-heading">
-                Contact
-              </h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <Field
-                  autoComplete="name"
-                  label="Full name"
-                  name="guestName"
-                  required
-                />
-                <Field
-                  autoComplete="email"
-                  label="Email address"
-                  name="email"
-                  required
-                  type="email"
-                />
-                <Field
-                  autoComplete="tel"
-                  label="Phone number"
-                  name="phone"
-                  required
-                  type="tel"
-                />
-              </div>
-            </section>
+          <form className="mt-10" onSubmit={submit}>
+            <FieldGroup>
+              <FieldSet>
+                <FieldLegend>Contact</FieldLegend>
+                <FieldGroup>
+                  <Field data-invalid={error ? true : undefined}>
+                    <FieldLabel htmlFor="guestName">Full name</FieldLabel>
+                    <Input
+                      aria-invalid={Boolean(error)}
+                      autoComplete="name"
+                      id="guestName"
+                      name="guestName"
+                      required
+                    />
+                  </Field>
+                  <Field data-invalid={error ? true : undefined}>
+                    <FieldLabel htmlFor="email">Email address</FieldLabel>
+                    <Input
+                      aria-invalid={Boolean(error)}
+                      autoComplete="email"
+                      id="email"
+                      name="email"
+                      required
+                      type="email"
+                    />
+                  </Field>
+                  <Field data-invalid={error ? true : undefined}>
+                    <FieldLabel htmlFor="phone">Phone number</FieldLabel>
+                    <Input
+                      aria-invalid={Boolean(error)}
+                      autoComplete="tel"
+                      id="phone"
+                      name="phone"
+                      required
+                      type="tel"
+                    />
+                  </Field>
+                </FieldGroup>
+              </FieldSet>
 
-            <section aria-labelledby="shipping-heading">
-              <h2 className="font-medium text-sm" id="shipping-heading">
-                Shipping address
-              </h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <label
-                  className="space-y-2 sm:col-span-2"
-                  htmlFor="addressLine"
-                >
-                  <span className="text-sm">Address</span>
-                  <Input
-                    autoComplete="street-address"
-                    id="addressLine"
-                    name="addressLine"
-                    placeholder="Street and house number"
-                    required
-                  />
-                </label>
-                <Field
-                  autoComplete="address-level2"
-                  label="City"
-                  name="city"
-                  required
-                />
-                <Field
-                  autoComplete="address-level1"
-                  label="Province"
-                  name="province"
-                  required
-                />
-                <Field
-                  autoComplete="postal-code"
-                  label="Postal code"
-                  maxLength={5}
-                  name="postalCode"
-                  pattern="\d{5}"
-                  required
-                />
-              </div>
-            </section>
+              <FieldSet>
+                <FieldLegend>Shipping address</FieldLegend>
+                <FieldGroup>
+                  <Field data-invalid={error ? true : undefined}>
+                    <FieldLabel htmlFor="addressLine">Address</FieldLabel>
+                    <Input
+                      aria-invalid={Boolean(error)}
+                      autoComplete="street-address"
+                      id="addressLine"
+                      name="addressLine"
+                      placeholder="Street and house number"
+                      required
+                    />
+                  </Field>
+                  <Field data-invalid={error ? true : undefined}>
+                    <FieldLabel htmlFor="city">City</FieldLabel>
+                    <Input
+                      aria-invalid={Boolean(error)}
+                      autoComplete="address-level2"
+                      id="city"
+                      name="city"
+                      required
+                    />
+                  </Field>
+                  <Field data-invalid={error ? true : undefined}>
+                    <FieldLabel htmlFor="province">Province</FieldLabel>
+                    <Input
+                      aria-invalid={Boolean(error)}
+                      autoComplete="address-level1"
+                      id="province"
+                      name="province"
+                      required
+                    />
+                  </Field>
+                  <Field data-invalid={error ? true : undefined}>
+                    <FieldLabel htmlFor="postalCode">Postal code</FieldLabel>
+                    <Input
+                      aria-invalid={Boolean(error)}
+                      autoComplete="postal-code"
+                      id="postalCode"
+                      maxLength={5}
+                      name="postalCode"
+                      pattern="\d{5}"
+                      required
+                    />
+                  </Field>
+                </FieldGroup>
+              </FieldSet>
 
-            {error ? (
-              <p
-                className="rounded-2xl bg-destructive/10 p-4 text-destructive text-sm"
-                role="alert"
+              {error ? (
+                <Alert variant="destructive">
+                  <AlertTitle>Unable to continue</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              ) : null}
+
+              <Button
+                className="w-full sm:w-auto"
+                disabled={submitting}
+                type="submit"
               >
-                {error}
-              </p>
-            ) : null}
-
-            <Button
-              className="h-12 w-full rounded-full sm:w-auto"
-              disabled={submitting}
-              type="submit"
-            >
-              {submitting ? (
-                <>
-                  <LoaderCircle aria-hidden="true" className="animate-spin" />
-                  Creating order
-                </>
-              ) : (
-                "Continue to payment"
-              )}
-            </Button>
+                {submitting ? <Spinner data-icon="inline-start" /> : null}
+                {submitting ? "Creating order" : "Continue to payment"}
+              </Button>
+            </FieldGroup>
           </form>
         </div>
 
         <aside className="h-fit rounded-3xl bg-muted/60 p-6 lg:sticky lg:top-6">
           <h2 className="font-medium">Order summary</h2>
-          <div className="mt-5 space-y-4">
+          <div className="mt-5 flex flex-col gap-4">
             {items.map(({ line, product }) => (
               <div
                 className="flex justify-between gap-4 text-sm"
@@ -248,7 +286,8 @@ function CheckoutPage() {
               </div>
             ))}
           </div>
-          <div className="mt-6 border-t pt-5">
+          <Separator className="mt-6" />
+          <div className="pt-5">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
               <span>{formatIdr(subtotal)}</span>
@@ -265,38 +304,5 @@ function CheckoutPage() {
         </aside>
       </div>
     </main>
-  );
-}
-
-function Field({
-  autoComplete,
-  label,
-  maxLength,
-  name,
-  pattern,
-  required = false,
-  type = "text",
-}: {
-  autoComplete?: string;
-  label: string;
-  maxLength?: number;
-  name: string;
-  pattern?: string;
-  required?: boolean;
-  type?: string;
-}) {
-  return (
-    <label className="space-y-2" htmlFor={name}>
-      <span className="text-sm">{label}</span>
-      <Input
-        autoComplete={autoComplete}
-        id={name}
-        maxLength={maxLength}
-        name={name}
-        pattern={pattern}
-        required={required}
-        type={type}
-      />
-    </label>
   );
 }

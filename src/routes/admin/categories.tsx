@@ -145,12 +145,8 @@ function AdminCategories() {
             Categories
           </h2>
         </div>
-        <Button
-          className="rounded-full"
-          onClick={() => openDialog("new")}
-          type="button"
-        >
-          <Plus aria-hidden="true" />
+        <Button onClick={() => openDialog("new")} type="button">
+          <Plus aria-hidden="true" data-icon="inline-start" />
           Add category
         </Button>
       </div>
@@ -200,10 +196,9 @@ function AdminCategories() {
                       </Button>
                       <Button
                         aria-label={`Delete ${category.name}`}
-                        className="hover:text-destructive"
                         onClick={() => setPendingDelete(category)}
                         size="icon"
-                        variant="ghost"
+                        variant="destructive"
                       >
                         <Trash2 aria-hidden="true" />
                       </Button>
@@ -227,12 +222,8 @@ function AdminCategories() {
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button
-              className="rounded-full"
-              onClick={() => openDialog("new")}
-              type="button"
-            >
-              <Plus aria-hidden="true" />
+            <Button onClick={() => openDialog("new")} type="button">
+              <Plus aria-hidden="true" data-icon="inline-start" />
               Add category
             </Button>
           </EmptyContent>

@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { getSetupStatus, runSetup } from "@/lib/setup.functions";
 
 export const Route = createFileRoute("/setup")({
@@ -76,12 +78,13 @@ function SetupPage() {
           </p>
         </section>
 
-        <Link
-          className="mt-8 inline-flex text-sm underline-offset-4 hover:underline"
-          to="/admin"
+        <Button
+          className="mt-8"
+          nativeButton={false}
+          render={<Link to="/admin" />}
         >
           Go to the admin area
-        </Link>
+        </Button>
       </main>
     );
   }
@@ -95,12 +98,13 @@ function SetupPage() {
         <p className="mt-4 text-muted-foreground">
           This store is configured. Sign in with your administrator account.
         </p>
-        <Link
-          className="mt-8 inline-flex text-sm underline-offset-4 hover:underline"
-          to="/sign-in"
+        <Button
+          className="mt-8"
+          nativeButton={false}
+          render={<Link to="/sign-in" />}
         >
           Sign in
-        </Link>
+        </Button>
       </main>
     );
   }
@@ -117,58 +121,74 @@ function SetupPage() {
       </p>
 
       {status.tokenConfigured ? null : (
-        <p className="mt-6 rounded-2xl border border-destructive/40 p-4 text-destructive text-sm">
-          SETUP_TOKEN is not set. Add it as a Worker secret, then reload.
-        </p>
+        <Alert className="mt-6" variant="destructive">
+          <AlertTitle>Setup token missing</AlertTitle>
+          <AlertDescription>
+            SETUP_TOKEN is not set. Add it as a Worker secret, then reload.
+          </AlertDescription>
+        </Alert>
       )}
 
-      <form className="mt-8 flex flex-col gap-4" onSubmit={submit}>
-        <label className="flex flex-col gap-2 text-sm" htmlFor="setup-token">
-          Setup token
-          <Input
-            autoComplete="off"
-            id="setup-token"
-            name="token"
-            required
-            type="password"
-          />
-        </label>
-        <label className="flex flex-col gap-2 text-sm" htmlFor="setup-name">
-          Your name
-          <Input id="setup-name" name="name" required type="text" />
-        </label>
-        <label className="flex flex-col gap-2 text-sm" htmlFor="setup-email">
-          Email
-          <Input id="setup-email" name="email" required type="email" />
-        </label>
-        <label className="flex flex-col gap-2 text-sm" htmlFor="setup-password">
-          Password
-          <Input
-            autoComplete="new-password"
-            id="setup-password"
-            minLength={8}
-            name="password"
-            required
-            type="password"
-          />
-        </label>
-
-        {error ? (
-          <p className="text-destructive text-sm" role="alert">
-            {error}
-          </p>
-        ) : null}
-
-        <Button
-          className="mt-2 rounded-full"
-          disabled={submitting || !status.tokenConfigured}
-          type="submit"
-        >
-          {submitting ? (
-            <LoaderCircle aria-hidden="true" className="animate-spin" />
+      <form className="mt-8" onSubmit={submit}>
+        <FieldGroup>
+          <Field data-invalid={error ? true : undefined}>
+            <FieldLabel htmlFor="setup-token">Setup token</FieldLabel>
+            <Input
+              aria-invalid={Boolean(error)}
+              autoComplete="off"
+              id="setup-token"
+              name="token"
+              required
+              type="password"
+            />
+          </Field>
+          <Field data-invalid={error ? true : undefined}>
+            <FieldLabel htmlFor="setup-name">Your name</FieldLabel>
+            <Input
+              aria-invalid={Boolean(error)}
+              id="setup-name"
+              name="name"
+              required
+              type="text"
+            />
+          </Field>
+          <Field data-invalid={error ? true : undefined}>
+            <FieldLabel htmlFor="setup-email">Email</FieldLabel>
+            <Input
+              aria-invalid={Boolean(error)}
+              id="setup-email"
+              name="email"
+              required
+              type="email"
+            />
+          </Field>
+          <Field data-invalid={error ? true : undefined}>
+            <FieldLabel htmlFor="setup-password">Password</FieldLabel>
+            <Input
+              aria-invalid={Boolean(error)}
+              autoComplete="new-password"
+              id="setup-password"
+              minLength={8}
+              name="password"
+              required
+              type="password"
+            />
+          </Field>
+          {error ? (
+            <Alert variant="destructive">
+              <AlertTitle>Unable to complete setup</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           ) : null}
-          Complete setup
-        </Button>
+          <Button
+            className="mt-2"
+            disabled={submitting || !status.tokenConfigured}
+            type="submit"
+          >
+            {submitting ? <Spinner data-icon="inline-start" /> : null}
+            {submitting ? "Completing setup" : "Complete setup"}
+          </Button>
+        </FieldGroup>
       </form>
     </main>
   );

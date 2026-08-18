@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { LoaderCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { mergeCart } from "@/lib/cart.functions";
 
@@ -64,51 +66,52 @@ function SignUpPage() {
       <p className="mt-4 text-muted-foreground">
         Save your order history while keeping guest checkout available.
       </p>
-      <form className="mt-10 space-y-5" onSubmit={submit}>
-        <label className="block space-y-2" htmlFor="sign-up-name">
-          <span className="text-sm">Name</span>
-          <Input autoComplete="name" id="sign-up-name" name="name" required />
-        </label>
-        <label className="block space-y-2" htmlFor="sign-up-email">
-          <span className="text-sm">Email address</span>
-          <Input
-            autoComplete="email"
-            id="sign-up-email"
-            name="email"
-            required
-            type="email"
-          />
-        </label>
-        <label className="block space-y-2" htmlFor="sign-up-password">
-          <span className="text-sm">Password</span>
-          <Input
-            autoComplete="new-password"
-            id="sign-up-password"
-            minLength={8}
-            name="password"
-            required
-            type="password"
-          />
-        </label>
-        {error ? (
-          <p className="text-destructive text-sm" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <Button
-          className="h-11 w-full rounded-full"
-          disabled={submitting}
-          type="submit"
-        >
-          {submitting ? (
-            <>
-              <LoaderCircle aria-hidden="true" className="animate-spin" />
-              Creating account
-            </>
-          ) : (
-            "Create account"
-          )}
-        </Button>
+      <form className="mt-10" onSubmit={submit}>
+        <FieldGroup>
+          <Field data-invalid={error ? true : undefined}>
+            <FieldLabel htmlFor="sign-up-name">Name</FieldLabel>
+            <Input
+              aria-invalid={Boolean(error)}
+              autoComplete="name"
+              id="sign-up-name"
+              name="name"
+              required
+            />
+          </Field>
+          <Field data-invalid={error ? true : undefined}>
+            <FieldLabel htmlFor="sign-up-email">Email address</FieldLabel>
+            <Input
+              aria-invalid={Boolean(error)}
+              autoComplete="email"
+              id="sign-up-email"
+              name="email"
+              required
+              type="email"
+            />
+          </Field>
+          <Field data-invalid={error ? true : undefined}>
+            <FieldLabel htmlFor="sign-up-password">Password</FieldLabel>
+            <Input
+              aria-invalid={Boolean(error)}
+              autoComplete="new-password"
+              id="sign-up-password"
+              minLength={8}
+              name="password"
+              required
+              type="password"
+            />
+          </Field>
+          {error ? (
+            <Alert variant="destructive">
+              <AlertTitle>Unable to create an account</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+          <Button className="w-full" disabled={submitting} type="submit">
+            {submitting ? <Spinner data-icon="inline-start" /> : null}
+            {submitting ? "Creating account" : "Create account"}
+          </Button>
+        </FieldGroup>
       </form>
       <p className="mt-7 text-muted-foreground text-sm">
         Already have an account?{" "}

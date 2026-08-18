@@ -1,4 +1,4 @@
-import { ImagePlus, LoaderCircle } from "lucide-react";
+import { ImagePlus } from "lucide-react";
 import { type ChangeEvent, useRef, useState } from "react";
 
 import { setProductImage } from "@/lib/admin.functions";
@@ -6,6 +6,7 @@ import { uploadProductImage } from "@/lib/uploads";
 import { cn } from "@/lib/utils";
 
 import { Button } from "./ui/button";
+import { Spinner } from "./ui/spinner";
 
 export function ProductImageUpload({
   onComplete,
@@ -53,6 +54,7 @@ export function ProductImageUpload({
     <div className="flex flex-col items-end gap-1">
       <input
         accept="image/*"
+        aria-invalid={Boolean(error)}
         aria-label={`Select image for ${productName}`}
         className="sr-only"
         disabled={isUploading}
@@ -64,7 +66,6 @@ export function ProductImageUpload({
       <Button
         aria-busy={isUploading}
         aria-label={`Upload image for ${productName}`}
-        className="rounded-full"
         disabled={isUploading}
         onClick={() => inputRef.current?.click()}
         size="icon"
@@ -76,20 +77,22 @@ export function ProductImageUpload({
           <ImagePlus
             aria-hidden="true"
             className={cn(
-              "absolute inset-0 size-4 transition-[filter,opacity,transform] duration-150 ease-out-strong",
+              "absolute inset-0 transition-[filter,opacity,transform] duration-150 ease-out-strong",
               isUploading
                 ? "scale-[0.25] opacity-0 blur-[4px]"
                 : "scale-100 opacity-100 blur-0"
             )}
           />
-          <LoaderCircle
+          <Spinner
             aria-hidden="true"
+            aria-label={undefined}
             className={cn(
-              "absolute inset-0 size-4 transition-[filter,opacity,transform] duration-150 ease-out-strong",
+              "absolute inset-0 transition-[filter,opacity,transform] duration-150 ease-out-strong",
               isUploading
-                ? "animate-spin scale-100 opacity-100 blur-0"
+                ? "scale-100 opacity-100 blur-0"
                 : "scale-[0.25] opacity-0 blur-[4px]"
             )}
+            role="presentation"
           />
         </span>
       </Button>

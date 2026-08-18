@@ -1,6 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { formatIdr, formatOrderStatus } from "@/lib/format";
 import {
@@ -73,9 +74,10 @@ export function ClaimableGuestOrders({
       </p>
 
       {error ? (
-        <p className="mt-4 text-destructive text-sm" role="alert">
-          {error}
-        </p>
+        <Alert className="mt-4" variant="destructive">
+          <AlertTitle>Unable to continue</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
       <div className="mt-6 divide-y border-y">
