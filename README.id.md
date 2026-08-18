@@ -40,7 +40,7 @@ Membutuhkan Bun 1.3 atau yang lebih baru.
 git clone https://github.com/mayarid/then-ecommerce
 cd then-ecommerce
 bun install
-bun run setup   # migrasi D1 lokal
+bun run setup   # migrasi D1 lokal dan pembayaran sandbox
 bun dev
 ```
 
@@ -56,7 +56,7 @@ tanpa ID di `wrangler.jsonc`, jadi Wrangler membuatnya secara lokal saat
 | --- | --- | --- |
 | `MAYAR_API_KEY` | Ya | API key Mayar. Key sandbox dan production berbeda. |
 | `BETTER_AUTH_URL` | Tidak | URL publik Anda. Tanpa ini, Better Auth membaca origin dari setiap request. |
-| `MAYAR_ENVIRONMENT` | Tidak | `sandbox` (bawaan) atau `production`. Diatur di `wrangler.jsonc`. |
+| `MAYAR_ENVIRONMENT` | Tidak | `production` (bawaan) atau `sandbox`. Diatur di `wrangler.jsonc`. |
 | `SHIPPING_FLAT_RATE` | Tidak | Ongkos kirim flat dalam IDR, dikenakan sekali per pesanan. Diatur di `wrangler.jsonc`. |
 
 Tidak ada `BETTER_AUTH_SECRET` yang perlu diisi. Worker membuatnya sendiri
@@ -64,8 +64,10 @@ saat pertama dipakai dan menyimpannya di D1, jadi sesi tetap valid setelah
 restart dan formulir deploy tetap singkat. Lihat
 [ADR-0017](docs/adr/0017-generate-the-auth-secret-on-first-use.md).
 
-Biarkan `MAYAR_ENVIRONMENT=sandbox` sampai Anda berhasil menyelesaikan satu
-checkout percobaan.
+Deploy bawaan langsung memakai pembayaran live. Pengembangan lokal tidak:
+`bun run setup` menulis `MAYAR_ENVIRONMENT=sandbox` ke `.dev.vars`, yang
+menimpa `wrangler.jsonc` saat `wrangler dev`. Lihat
+[ADR-0018](docs/adr/0018-default-deploys-to-live-payments.md).
 
 ## Setelah deploy pertama
 
@@ -81,7 +83,9 @@ ini bersamaan, kalau tidak keduanya akan berbeda isi.
 3. Set `BETTER_AUTH_URL` ke URL publik Anda. Disarankan: tanpa ini, pemeriksaan
    origin akan percaya pada host mana pun yang melayani request tersebut.
 4. Ganti produk contoh.
-5. Ubah `MAYAR_ENVIRONMENT` ke production setelah satu checkout sandbox berhasil.
+5. Pembayaran sudah live sejak deploy. Kalau Anda memilih sandbox di formulir
+   deploy, ubah `MAYAR_ENVIRONMENT` ke production di `wrangler.jsonc` dan
+   ganti dengan API key Mayar production Anda.
 6. Pertimbangkan lokasi database D1 Anda. Deploy sekali klik tidak bisa memilih
    lokasi primary. Untuk memindahkannya, buat database dengan
    `wrangler d1 create <nama> --location <hint>` lalu arahkan binding ke sana.

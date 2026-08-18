@@ -39,7 +39,7 @@ Requires Bun 1.3 or newer.
 git clone https://github.com/mayarid/then-ecommerce
 cd then-ecommerce
 bun install
-bun run setup   # migrates the local D1
+bun run setup   # migrates the local D1 and pins sandbox payments
 bun dev
 ```
 
@@ -55,14 +55,17 @@ provisions them on your account at deploy time.
 | --- | --- | --- |
 | `MAYAR_API_KEY` | Yes | Mayar API key. Sandbox and production keys differ. |
 | `BETTER_AUTH_URL` | No | Your public URL. Without it, Better Auth reads the origin from each request. |
-| `MAYAR_ENVIRONMENT` | No | `sandbox` (default) or `production`. Set in `wrangler.jsonc`. |
+| `MAYAR_ENVIRONMENT` | No | `production` (default) or `sandbox`. Set in `wrangler.jsonc`. |
 | `SHIPPING_FLAT_RATE` | No | Flat shipping in IDR, applied once per order. Set in `wrangler.jsonc`. |
 
 There is no `BETTER_AUTH_SECRET` to set. The Worker generates it on first use
 and stores it in D1, so sessions survive restarts and the deploy form stays
 short. See [ADR-0017](docs/adr/0017-generate-the-auth-secret-on-first-use.md).
 
-Keep `MAYAR_ENVIRONMENT=sandbox` until you have completed a test checkout.
+Deploys default to live payments. Local development does not: `bun run setup`
+writes `MAYAR_ENVIRONMENT=sandbox` into `.dev.vars`, which overrides
+`wrangler.jsonc` on `wrangler dev`. See
+[ADR-0018](docs/adr/0018-default-deploys-to-live-payments.md).
 
 ## After the first deploy
 
@@ -78,7 +81,9 @@ section together, or they drift.
 3. Set `BETTER_AUTH_URL` to your public URL. Recommended: without it, the origin
    check trusts whatever host served the request.
 4. Replace the sample products.
-5. Switch `MAYAR_ENVIRONMENT` to production after one sandbox checkout works.
+5. Payments are live from the deploy. If you chose sandbox in the deploy form,
+   switch `MAYAR_ENVIRONMENT` to production in `wrangler.jsonc` and swap in
+   your production Mayar API key.
 6. Consider where your D1 database lives. A one-click deploy cannot choose the
    primary location. To move it, create a database with
    `wrangler d1 create <name> --location <hint>` and point the binding at it.

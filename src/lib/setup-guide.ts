@@ -36,7 +36,7 @@ export const setupGuideSteps: SetupGuideStep[] = [
     to: "/admin/products",
   },
   {
-    body: "Set MAYAR_ENVIRONMENT to production in wrangler.jsonc and swap in your production Mayar API key. Do this after one sandbox checkout has worked end to end, not before.",
+    body: "Deploys default to production, so this is usually done already. If you deployed with sandbox for testing, set MAYAR_ENVIRONMENT to production in wrangler.jsonc and swap in your production Mayar API key.",
     id: "livePayments",
     title: "Switch to live payments",
   },

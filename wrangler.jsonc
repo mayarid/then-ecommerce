@@ -84,7 +84,9 @@
     "crons": ["*/5 * * * *"]
   },
   "vars": {
-    "MAYAR_ENVIRONMENT": "sandbox",
+    // Deploys default to live payments. `wrangler dev` reads this too, so
+    // scripts/setup.ts pins sandbox in .dev.vars for local work. See ADR-0018.
+    "MAYAR_ENVIRONMENT": "production",
     "SHIPPING_FLAT_RATE": "0"
   }
 }

@@ -10,7 +10,7 @@ interface __BaseEnv_Env {
 	CHECKOUT_LIMITER: RateLimit;
 	WEBHOOK_LIMITER: RateLimit;
 	SETUP_LIMITER: RateLimit;
-	MAYAR_ENVIRONMENT: "sandbox";
+	MAYAR_ENVIRONMENT: "production";
 	SHIPPING_FLAT_RATE: "0";
 	MAYAR_API_KEY: string;
 }
