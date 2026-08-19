@@ -10,6 +10,10 @@ TanStack Start, Better Auth, Drizzle ORM, D1, R2, and Mayar V2 payments.
 Everything the store needs is provisioned for you. Prepare one secret before
 you click: see [Environment variables](#environment-variables).
 
+## Video Demo
+
+https://cap.faizintifada.com/s/sht5w7z8g86035y
+
 ## Stack
 
 - TanStack Start (React 19) on Cloudflare Workers
